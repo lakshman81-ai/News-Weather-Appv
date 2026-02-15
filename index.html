@@ -11,7 +11,28 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <div style="padding: 20px; font-family: sans-serif; text-align: center;">
+      <h1>Loading News & Weather...</h1>
+      <p>If this message persists, something went wrong.</p>
+    </div>
+  </div>
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      console.error('Global Error:', message, source, lineno, colno, error);
+      const root = document.getElementById('root');
+      if (root && root.innerHTML.includes('Loading')) {
+        root.innerHTML = `
+          <div style="padding: 20px; color: red; font-family: sans-serif;">
+            <h1>Application Error</h1>
+            <p><strong>Message:</strong> ${message}</p>
+            <p><strong>Source:</strong> ${source}:${lineno}:${colno}</p>
+            <pre style="background: #f0f0f0; padding: 10px; overflow: auto;">${error && error.stack ? error.stack : 'No stack trace available'}</pre>
+          </div>
+        `;
+      }
+    };
+  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 
