@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: "pages-deploy"
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -34,6 +38,10 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Pull latest changes to avoid conflicts
+          git pull --rebase origin main
+
           git add docs/
           if git diff --staged --quiet; then
             echo "No changes to commit"
