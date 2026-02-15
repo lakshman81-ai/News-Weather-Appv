@@ -176,7 +176,7 @@ const MainPage = () => {
 
     // Navigation Sections
     const navSections = [
-        { id: 'world-news', icon: '🌍', label: 'World' },
+        { id: 'top-stories', icon: '⭐', label: 'Top' },
         sections.india?.enabled && { id: 'india-news', icon: '🇮🇳', label: 'India' },
         sections.chennai?.enabled && { id: 'chennai-news', icon: '🏛️', label: 'Tamil Nadu' },
         sections.local?.enabled && { id: 'local-news', icon: '📍', label: 'Muscat' }
@@ -210,61 +210,107 @@ const MainPage = () => {
 
             <main className={`main-content ${isWebView ? 'main-content--desktop' : ''}`}>
 
-                {/* Desktop Sidebar */}
-                {isWebView && (
-                    <div className="desktop-sidebar">
-                        <QuickWeather />
-                        {/* Ensure Tamil Nadu is prioritized or visible if active */}
-                        <SidebarNews
-                            news={
-                                newsData.world && newsData.world.length > 0 ? newsData.world :
-                                (newsData.chennai && newsData.chennai.length > 0 ? newsData.chennai : newsData.frontPage)
-                            }
-                            title="Global Headlines"
-                        />
+                {isLoading && (
+                    <div className="loading" style={{padding: '40px'}}>
+                        <div className="loading__spinner"></div>
+                        <span>Loading Updates...</span>
                     </div>
                 )}
 
-                <div className="content-wrapper">
-
-                    {isLoading && (
-                        <div className="loading" style={{padding: '40px'}}>
-                            <div className="loading__spinner"></div>
-                            <span>Loading Updates...</span>
-                        </div>
-                    )}
-
-                    {!isTimelineMode && (
-                        <>
-                            <div className="topline">
-                                <div className="topline__label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <span>{toplineContent?.icon || '📰'}</span>
-                                    <span>{toplineContent?.type || 'TOPLINE'}</span>
+                {isWebView ? (
+                    // --- PC VIEW LAYOUT ---
+                    <div className="main-page-grid">
+                        <div className="left-col">
+                            <QuickWeather />
+                            <div className="modern-card" style={{ marginTop: '20px' }}>
+                                <div className="modern-card__header">
+                                    <h2 className="modern-card__title">🌍 Global News</h2>
                                 </div>
-                                <div className="topline__text">
-                                    {toplineContent?.text || getTopline(currentSegment)}
+                                {/* Newspaper Column Style for World News */}
+                                <div className="newspaper-column">
+                                    {(newsData.world || []).slice(0, 8).map((item, idx) => (
+                                        <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" className="newspaper-item">
+                                            <div className="newspaper-item__title">{item.title}</div>
+                                            <div className="newspaper-item__meta">{item.source} • {item.time}</div>
+                                        </a>
+                                    ))}
                                 </div>
                             </div>
-                            <BreakingNews items={breakingNews} />
-                        </>
-                    )}
+                        </div>
 
-                    {!isWebView && (
+                        <div className="right-col">
+                            {/* Top Stories + Rest */}
+                            <div className="news-sections">
+                                {latestStories.length > 0 && (
+                                    <NewsSection
+                                        id="top-stories"
+                                        title="Top Stories"
+                                        icon="⭐"
+                                        colorClass="news-section__title--world"
+                                        news={latestStories}
+                                        maxDisplay={10}
+                                    />
+                                )}
+
+                                {sections.india?.enabled && (
+                                    <NewsSection
+                                        id="india-news"
+                                        title="India News"
+                                        icon="🇮🇳"
+                                        colorClass="news-section__title--india"
+                                        news={newsData.india}
+                                        maxDisplay={sections.india.count || 5}
+                                    />
+                                )}
+
+                                {sections.chennai?.enabled && (
+                                    <NewsSection
+                                        id="chennai-news"
+                                        title="Tamil Nadu"
+                                        icon="🏛️"
+                                        colorClass="news-section__title--chennai"
+                                        news={newsData.chennai}
+                                        maxDisplay={sections.chennai.count || 5}
+                                    />
+                                )}
+
+                                {sections.local?.enabled && (
+                                    <NewsSection
+                                        id="local-news"
+                                        title="Muscat / Local"
+                                        icon="📍"
+                                        colorClass="news-section__title--local"
+                                        news={newsData.local}
+                                        maxDisplay={sections.local.count || 5}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    // --- MOBILE VIEW LAYOUT ---
+                    <div className="content-wrapper">
+                        {!isTimelineMode && (
+                            <>
+                                <div className="topline">
+                                    <div className="topline__label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span>{toplineContent?.icon || '📰'}</span>
+                                        <span>{toplineContent?.type || 'TOPLINE'}</span>
+                                    </div>
+                                    <div className="topline__text">
+                                        {toplineContent?.text || getTopline(currentSegment)}
+                                    </div>
+                                </div>
+                                <BreakingNews items={breakingNews} />
+                            </>
+                        )}
+
                         <QuickWeather />
-                    )}
 
-                    {isNewspaperMode ? (
-                        <NewspaperLayout
-                            newsData={newsData}
-                            breakingNews={breakingNews}
-                            settings={settings.newspaper}
-                        />
-                    ) : (
-                        <div className="news-sections news-sections--grid">
-
+                        <div className="news-sections">
                             {(!isUrgentMode || breakingNews.length === 0) && (
                                 <>
-                                    {latestStories.length > 0 ? (
+                                    {latestStories.length > 0 && (
                                         <NewsSection
                                             id="top-stories"
                                             title="Top Stories"
@@ -272,46 +318,20 @@ const MainPage = () => {
                                             colorClass="news-section__title--world"
                                             news={latestStories}
                                             maxDisplay={10}
-                                            loading={loading && latestStories.length === 0}
                                         />
-                                    ) : (
-                                        settings.customSortTopStories && newsData.frontPage?.length > 0 && (
-                                            <div className="empty-state" style={{padding: '20px', marginBottom: '20px', background: 'var(--bg-card)', borderRadius: '12px'}}>
-                                                <div style={{fontSize: '2rem', marginBottom:'10px'}}>✅</div>
-                                                <p style={{color: 'var(--text-muted)'}}>You're all caught up with top stories!</p>
-                                                <button
-                                                    onClick={() => refreshNews()}
-                                                    className="btn btn--secondary"
-                                                    style={{marginTop:'10px', fontSize:'0.8rem', padding:'6px 12px'}}
-                                                >
-                                                    Check for new updates
-                                                </button>
-                                            </div>
-                                        )
                                     )}
-
-                                    <NewsSection
-                                        id="world-news"
-                                        title="Global Updates"
-                                        icon="🌍"
-                                        colorClass="news-section__title--world"
-                                        news={newsData.world}
-                                        maxDisplay={sections.world?.count || 5}
-                                    />
 
                                     {sections.india?.enabled && (
                                         <NewsSection
                                             id="india-news"
-                                            title={isTimelineMode ? "India" : "India News"}
+                                            title="India"
                                             icon="🇮🇳"
                                             colorClass="news-section__title--india"
                                             news={newsData.india}
                                             maxDisplay={sections.india.count || 5}
-                                            error={errors.india}
                                         />
                                     )}
 
-                                    {/* Tamil Nadu Feed (Chennai) */}
                                     {sections.chennai?.enabled && (
                                         <NewsSection
                                             id="chennai-news"
@@ -320,68 +340,46 @@ const MainPage = () => {
                                             colorClass="news-section__title--chennai"
                                             news={newsData.chennai}
                                             maxDisplay={sections.chennai.count || 5}
-                                            error={errors.chennai}
-                                        />
-                                    )}
-
-                                    {sections.trichy?.enabled && (
-                                        <NewsSection
-                                            id="trichy-news"
-                                            title="Trichy"
-                                            icon="🏛️"
-                                            colorClass="news-section__title--trichy"
-                                            news={newsData.trichy}
-                                            maxDisplay={sections.trichy.count || 5}
-                                            error={errors.trichy}
                                         />
                                     )}
 
                                     {sections.local?.enabled && (
-                                        <LazySection
+                                        <NewsSection
                                             id="local-news"
-                                            onVisible={() => loadSection('local')}
-                                            isLoaded={loadedSections.includes('local')}
-                                        >
-                                            <NewsSection
-                                                id="local-news"
-                                                title="Local — Muscat"
-                                                icon="📍"
-                                                colorClass="news-section__title--local"
-                                                news={newsData.local}
-                                                maxDisplay={sections.local.count || 5}
-                                                error={errors.local}
-                                            />
-                                        </LazySection>
+                                            title="Muscat"
+                                            icon="📍"
+                                            colorClass="news-section__title--local"
+                                            news={newsData.local}
+                                            maxDisplay={sections.local.count || 5}
+                                        />
                                     )}
+
+                                    <NewsSection
+                                        id="world-news"
+                                        title="World"
+                                        icon="🌍"
+                                        colorClass="news-section__title--world"
+                                        news={newsData.world}
+                                        maxDisplay={sections.world?.count || 5}
+                                    />
                                 </>
                             )}
-
-                            {isUrgentMode && breakingNews.length === 0 && (
-                                <div style={{padding: '20px', textAlign: 'center', color: 'var(--text-muted)'}}>
-                                    <h3>Urgent Alerts Mode</h3>
-                                    <p>Monitoring for critical updates...</p>
-                                </div>
-                            )}
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {settings.debugLogs && (
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: '10px',
-                            marginTop: 'var(--spacing-md)', padding: '8px 12px',
-                            background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)',
-                            fontSize: '0.7rem', color: 'var(--text-muted)', flexWrap: 'wrap'
-                        }}>
-                            <span title="Segment">{currentSegment.icon} {currentSegment.label}</span>
-                            <span title="Notifications">{notifPermission === 'granted' ? '🔔' : '🔕'}</span>
-                            <span title="UI Mode">📱 {uiMode}</span>
-                            <span title="Strict Mode">{settings.strictFreshness ? '🛡️' : '🔓'}</span>
-                            <Link to="/settings" onClick={() => {}} style={{ marginLeft: 'auto', color: 'var(--accent-primary)', fontSize: '0.7rem' }}>
-                                Debug →
-                            </Link>
-                        </div>
-                    )}
-                </div>
+                {settings.debugLogs && (
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        marginTop: 'var(--spacing-md)', padding: '8px 12px',
+                        background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.7rem', color: 'var(--text-muted)', flexWrap: 'wrap'
+                    }}>
+                        <span title="Segment">{currentSegment.icon} {currentSegment.label}</span>
+                        <span title="Notifications">{notifPermission === 'granted' ? '🔔' : '🔕'}</span>
+                        <span title="UI Mode">📱 {uiMode}</span>
+                    </div>
+                )}
             </main>
 
             <SectionNavigator sections={navSections} />

@@ -275,11 +275,20 @@ function TechSocialPage() {
 
                     <ProgressBar active={contextLoading && loadingPhase > 1} style={{ marginBottom: '16px' }} />
 
-                    <div className="entertainment-tabs">
-                        <button className={`ent-tab ${activeEntTab === 'tamil' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('tamil')}>🎭 Tamil</button>
-                        <button className={`ent-tab ${activeEntTab === 'hindi' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('hindi')}>🎪 Hindi</button>
-                        <button className={`ent-tab ${activeEntTab === 'hollywood' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('hollywood')}>🎬 Hollywood</button>
-                        <button className={`ent-tab ${activeEntTab === 'ott' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('ott')}>📺 OTT</button>
+                    {/* Modern Icons for Entertainment Tabs */}
+                    <div className="entertainment-tabs modern-icons">
+                        <button className={`ent-tab ${activeEntTab === 'tamil' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('tamil')}>
+                            <span className="ent-icon">🎭</span> Tamil
+                        </button>
+                        <button className={`ent-tab ${activeEntTab === 'hindi' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('hindi')}>
+                            <span className="ent-icon">🎪</span> Hindi
+                        </button>
+                        <button className={`ent-tab ${activeEntTab === 'hollywood' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('hollywood')}>
+                            <span className="ent-icon">🎬</span> H'wood
+                        </button>
+                        <button className={`ent-tab ${activeEntTab === 'ott' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('ott')}>
+                            <span className="ent-icon">📺</span> OTT
+                        </button>
                     </div>
 
                     <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
