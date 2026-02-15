@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   // Use relative base path for maximum compatibility on GitHub Pages
   base: './',
+  build: {
+    outDir: 'docs',
+  },
   server: {
     proxy: {
       '/api': {
