@@ -127,25 +127,17 @@ This application is a Progressive Web App (PWA), meaning you can install it on y
 
 ## Deployment Troubleshooting 🚨
 
-**If you see a blank white screen or 404 errors, check your deployment source immediately.**
+**The app is deployed automatically to the `gh-pages` branch.**
 
-There are two valid ways to deploy this app:
-
-### Option A: The Recommended Way (Automated)
+### Required Configuration
 1.  Go to your GitHub Repository -> **Settings** -> **Pages**.
 2.  Set **Source** to **Deploy from a branch**.
 3.  Select **Branch: `gh-pages`** and **Folder: `/(root)`**.
 4.  Save.
-    *   *Why?* The system automatically builds the app and pushes the compiled code to the `gh-pages` branch. This is the cleanest method.
 
-### Option B: The "Main Branch" Way (Manual)
-1.  Go to your GitHub Repository -> **Settings** -> **Pages**.
-2.  Set **Source** to **Deploy from a branch**.
-3.  Select **Branch: `main`** and **Folder: `/docs`**.
-4.  Save.
-    *   *Why?* The app is pre-compiled into the `docs/` folder. You must tell GitHub Pages to look there.
+*Wait about 60 seconds after the next push for the site to update.*
 
-**❌ DO NOT set the folder to `/(root)` on the `main` branch.** This will serve the source code instead of the app, causing crashes.
+**Note:** If you previously deployed from `main`, you must switch to `gh-pages` for the site to load correctly.
 
 ## License
 
