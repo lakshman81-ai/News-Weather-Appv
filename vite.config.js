@@ -8,14 +8,9 @@ export default defineConfig({
   base: './',
   build: {
     outDir: 'docs',
+    sourcemap: true,
   },
   server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        secure: false,
-      }
-    }
+    // Proxy config removed for production build compatibility
   }
 })
