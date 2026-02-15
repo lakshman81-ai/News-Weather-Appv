@@ -213,7 +213,10 @@ export function NewsProvider({ children }) {
     useEffect(() => {
         console.log('[NewsContext] Mounting - Initial fetch (Priority Only)');
         // Initial Fetch: Only Priority Sections
-        refreshNews(PRIORITY_SECTIONS);
+        // Defer fetch slightly to allow UI shell to paint first (improves perceived load time)
+        const initTimer = setTimeout(() => {
+            refreshNews(PRIORITY_SECTIONS);
+        }, 500);
 
         const interval = setInterval(() => {
             console.log('[NewsContext] Auto-refresh (5min cycle)');
@@ -223,6 +226,7 @@ export function NewsProvider({ children }) {
         }, 5 * 60 * 1000);
 
         return () => {
+            clearTimeout(initTimer);
             clearInterval(interval);
             console.log('[NewsContext] Unmounting');
         };
