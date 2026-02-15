@@ -2,6 +2,39 @@
 <html lang="en">
 
 <head>
+  <script id="redirect-script">
+    (function() {
+      // Check if running on GitHub Pages
+      if (window.location.hostname.endsWith('github.io')) {
+        // We are in the source file (index.html in root).
+        // If we were in the built file (docs/index.html), this script would have been stripped by Vite.
+        // Therefore, if this script is running, we are serving source code.
+
+        var path = window.location.pathname;
+
+        // Avoid redirect loop if we are already in docs (though script shouldn't be there)
+        if (!path.includes('/docs/')) {
+            // Construct target URL: /RepoName/docs/
+            // Assuming path starts with /RepoName/
+            var segments = path.split('/').filter(Boolean);
+            var repoName = segments[0];
+
+            // Handle user.github.io (root domain) vs user.github.io/repo
+            // If segments is empty, we are at root of domain.
+
+            var targetUrl;
+            if (repoName) {
+                targetUrl = window.location.origin + '/' + repoName + '/docs/';
+            } else {
+                targetUrl = window.location.origin + '/docs/';
+            }
+
+            console.warn('Source code served on GitHub Pages. Redirecting to build artifact:', targetUrl);
+            window.location.replace(targetUrl);
+        }
+      }
+    })();
+  </script>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <link rel="manifest" href="manifest.json" />
