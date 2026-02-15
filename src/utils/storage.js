@@ -472,6 +472,7 @@ export const DEFAULT_SETTINGS = {
     enableCache: true,         // NEW - Phase 6: Enable memory cache for faster loads
     crawlerMode: 'auto',
     debugLogs: false,
+    showDebugConsole: true, // Default ON
 
     lastUpdated: 0 // Initialize timestamp
 };

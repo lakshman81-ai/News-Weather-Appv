@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { getCredibilityStars } from '../data/sourceMetrics';
 import { addReadArticle, getSettings } from '../utils/storage';
 import { useNews } from '../context/NewsContext';
+import ProgressBar from './ProgressBar';
 
 /**
  * News Section Component
@@ -23,7 +24,8 @@ function NewsSection({
     error = null,
     extraContent = null,
     onArticleClick = null,
-    showCritics = true
+    showCritics = true,
+    loading = false
 }) {
     const [expanded, setExpanded] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -97,6 +99,10 @@ function NewsSection({
                     <p style={{ color: '#ff5757' }}>{error}</p>
                 </div>
             );
+        }
+
+        if (loading) {
+            return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading stories...</div>;
         }
 
         if (news.length === 0) {
@@ -253,6 +259,8 @@ function NewsSection({
                     </span>
                 )}
             </h2>
+
+            <ProgressBar active={loading} />
 
             {!isCollapsed && renderContent()}
         </section>

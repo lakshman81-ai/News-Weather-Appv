@@ -5,6 +5,7 @@ import SectionNavigator from '../components/SectionNavigator';
 import { ImageCard } from '../components/ImageCard';
 import { useNews } from '../context/NewsContext';
 import { useSettings } from '../context/SettingsContext';
+import ProgressBar from '../components/ProgressBar';
 
 const CACHE_KEY = 'buzz_page_cache';
 
@@ -294,6 +295,8 @@ function TechSocialPage() {
                     <h2 className="news-section__title news-section__title--entertainment">
                         <span>🎬</span> Entertainment
                     </h2>
+
+                    <ProgressBar active={contextLoading && loadingPhase > 1} style={{ marginBottom: '16px' }} />
 
                     <div className="entertainment-tabs">
                         <button

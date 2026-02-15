@@ -12,13 +12,27 @@ import FollowingPage from './pages/FollowingPage';
 import TopicDetail from './pages/TopicDetail';
 import BottomNav from './components/BottomNav';
 import ScrollToTop from './components/ScrollToTop';
-import { WeatherProvider } from './context/WeatherContext';
-import { NewsProvider } from './context/NewsContext';
+import DebugConsole from './components/DebugConsole';
+import { WeatherProvider, useWeather } from './context/WeatherContext';
+import { NewsProvider, useNews } from './context/NewsContext';
 import { MarketProvider } from './context/MarketContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { SegmentProvider } from './context/SegmentContext';
 import { TopicProvider } from './context/TopicContext';
+import ProgressBar from './components/ProgressBar';
 import './index.css';
+
+const GlobalLoader = () => {
+  const { loading: newsLoading } = useNews();
+  const { loading: weatherLoading } = useWeather();
+  const isLoading = newsLoading || weatherLoading;
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999 }}>
+      <ProgressBar active={isLoading} color="var(--accent-primary)" style={{ height: '3px' }} />
+    </div>
+  );
+};
 
 function App() {
   console.log('[App] Rendering root component...');
@@ -31,6 +45,8 @@ function App() {
               <TopicProvider>
                 <HashRouter>
                 <ScrollToTop />
+                <GlobalLoader />
+                <DebugConsole />
                 <div className="app">
                   <Routes>
                     <Route path="/" element={<MainPage />} />
