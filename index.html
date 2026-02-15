@@ -3,21 +3,6 @@
 
 <head>
   <meta charset="UTF-8" />
-  <script>
-    // GitHub Pages Misconfiguration Failsafe
-    // If we are on github.io and NOT in the /docs/ folder, it means the user
-    // has configured GitHub Pages to serve from the root of the 'main' branch.
-    // We must redirect to /docs/ where the compiled app lives.
-    if (window.location.hostname.includes('github.io') && !window.location.pathname.includes('/docs/')) {
-      const repoName = window.location.pathname.split('/')[1]; // e.g. "News-Weather-App"
-      // Prevent infinite redirect if repo name is somehow missing or weird, but usually:
-      if (repoName) {
-        // Redirect to /RepoName/docs/
-        // Preserves hash if present, though rarely relevant for root load
-        window.location.replace(`/${repoName}/docs/` + window.location.hash);
-      }
-    }
-  </script>
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <link rel="manifest" href="manifest.json" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
