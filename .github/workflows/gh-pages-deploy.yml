@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages (Main)
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -33,19 +31,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy (Commit to Main/docs)
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
         if: success()
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Pull latest changes to avoid conflicts
-          git pull --rebase origin main
-
-          git add docs/
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Deploy: Update docs/ build artifacts [skip ci]"
-            git push origin main
-          fi
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true

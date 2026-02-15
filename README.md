@@ -125,6 +125,17 @@ This application is a Progressive Web App (PWA), meaning you can install it on y
 1. Look for the install icon (usually a computer with a down arrow) in the right side of the address bar.
 2. Click it and select **"Install"**.
 
+## Deployment Troubleshooting
+
+If you see a blank white screen, "Initializing application...", or 404 errors on GitHub Pages:
+
+1.  Go to your GitHub Repository -> **Settings** -> **Pages**.
+2.  Ensure **Source** is set to **Deploy from a branch**.
+3.  **Important:** Change the branch to **`gh-pages`** and folder to **`/(root)`**.
+4.  Save the changes.
+
+*The `gh-pages` branch is automatically maintained by the "Deploy to GitHub Pages" action. Do not deploy from `main` manually.*
+
 ## License
 
 MIT
