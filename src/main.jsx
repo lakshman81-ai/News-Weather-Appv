@@ -5,6 +5,8 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { registerSW } from './registerSW'
 import { runScoringTests } from './utils/testScoring.js';
 
+console.log('[Main] Application starting...');
+
 // Expose scoring test for manual verification
 if (typeof window !== 'undefined') {
     window.runScoringTests = runScoringTests;

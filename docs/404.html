@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#000000" />
   <title>News & Weather App</title>
-  <script type="module" crossorigin src="./assets/index-BwTyq2NA.js"></script>
+  <script type="module" crossorigin src="./assets/index-he2x-X7H.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-BrfaHEfX.css">
 </head>
 
@@ -40,6 +40,14 @@
       console.error('Unhandled Rejection:', event.reason);
       displayError(event.reason ? event.reason.message : 'Unknown Async Error', 'Unhandled Promise Rejection', event.reason);
     });
+
+    // Capture Resource Loading Errors (e.g., Script 404s) - Capture Phase is TRUE
+    window.addEventListener('error', function(event) {
+      if (event.target && (event.target.tagName === 'SCRIPT' || event.target.tagName === 'LINK')) {
+        console.error('Resource Loading Error:', event.target.src || event.target.href);
+        displayError(`Failed to load resource: ${event.target.src || event.target.href}`, 'Network/Resource Error', null);
+      }
+    }, true);
 
     function displayError(message, source, error) {
       const root = document.getElementById('root');

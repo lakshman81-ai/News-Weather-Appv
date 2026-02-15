@@ -21,6 +21,7 @@ import { TopicProvider } from './context/TopicContext';
 import './index.css';
 
 function App() {
+  console.log('[App] Rendering root component...');
   return (
     <SettingsProvider>
       <SegmentProvider>
