@@ -272,6 +272,7 @@ const MainPage = () => {
                                             colorClass="news-section__title--world"
                                             news={latestStories}
                                             maxDisplay={10}
+                                            loading={loading && latestStories.length === 0}
                                         />
                                     ) : (
                                         settings.customSortTopStories && newsData.frontPage?.length > 0 && (

@@ -12,6 +12,7 @@ import {
 } from '../services/upAheadService';
 import plannerStorage from '../utils/plannerStorage';
 import { useSettings } from '../context/SettingsContext';
+import ProgressBar from '../components/ProgressBar';
 import './UpAhead.css';
 
 function UpAheadPage() {
@@ -254,6 +255,7 @@ function UpAheadPage() {
 
             {view === 'plan' && (
                 <div className="ua-weekly-plan">
+                     <ProgressBar active={loading || isRefreshing} style={{ marginBottom: '10px', borderRadius: '4px' }} />
                      {(data.weekly_plan && Array.isArray(data.weekly_plan)) ? data.weekly_plan.map((dayData, dIdx) => (
                          <div key={dIdx} className="ua-plan-day-row">
                              <div className="ua-plan-ribbon">
@@ -285,11 +287,11 @@ function UpAheadPage() {
                 </div>
             )}
 
-            {view === 'movies' && <div className="ua-tab-view"><CompactEventList items={data.sections?.movies} colorClass="text-accent-info" emptyMessage="No upcoming movie releases found." /></div>}
-            {view === 'offers' && <div className="ua-tab-view"><CompactEventList items={[...(data.sections?.shopping || []), ...(data.sections?.airlines || [])]} colorClass="text-accent-success" emptyMessage="No offers found." isOffer={true} /><div style={{textAlign:'center', marginTop:'10px', fontSize:'0.8rem', color:'var(--text-muted)'}}>Including Airline Offers</div></div>}
-            {view === 'events' && <div className="ua-tab-view"><CompactEventList items={[...(data.sections?.events || []), ...(data.sections?.sports || [])]} colorClass="text-accent-primary" emptyMessage="No upcoming events found." /></div>}
-            {view === 'alerts' && <div className="ua-tab-view"><CompactEventList items={combinedAlerts} colorClass="text-accent-error" emptyMessage="No alerts found." /></div>}
-            {view === 'festivals' && <div className="ua-tab-view"><CompactEventList items={data.sections?.festivals} colorClass="text-accent-warning" emptyMessage="No festivals found." /></div>}
+            {view === 'movies' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={data.sections?.movies} colorClass="text-accent-info" emptyMessage="No upcoming movie releases found." /></div>}
+            {view === 'offers' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={[...(data.sections?.shopping || []), ...(data.sections?.airlines || [])]} colorClass="text-accent-success" emptyMessage="No offers found." isOffer={true} /><div style={{textAlign:'center', marginTop:'10px', fontSize:'0.8rem', color:'var(--text-muted)'}}>Including Airline Offers</div></div>}
+            {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={[...(data.sections?.events || []), ...(data.sections?.sports || [])]} colorClass="text-accent-primary" emptyMessage="No upcoming events found." /></div>}
+            {view === 'alerts' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={combinedAlerts} colorClass="text-accent-error" emptyMessage="No alerts found." /></div>}
+            {view === 'festivals' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={data.sections?.festivals} colorClass="text-accent-warning" emptyMessage="No festivals found." /></div>}
 
             {view === 'feed' && (
                 <div className="ua-timeline">
