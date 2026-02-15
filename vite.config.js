@@ -9,6 +9,15 @@ export default defineConfig({
   build: {
     outDir: 'docs',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['react-icons'],
+          'utils-sentiment': ['sentiment', 'string-similarity']
+        }
+      }
+    }
   },
   server: {
     // Proxy config removed for production build compatibility

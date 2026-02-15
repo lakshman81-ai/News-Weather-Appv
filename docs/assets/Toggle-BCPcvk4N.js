@@ -1,0 +1,2 @@
+import{j as e}from"./index-Cu5lRAYs.js";import"./vendor-react-BMB3rUHI.js";function r({checked:s,onChange:t,recommended:a=!1,disabled:l=!1}){return e.jsxs("label",{className:`toggle ${a?"toggle--recommended":""}`,children:[e.jsx("input",{type:"checkbox",className:"toggle__input",checked:s,onChange:o=>t(o.target.checked),disabled:l}),e.jsx("span",{className:"toggle__slider"})]})}export{r as T};
+//# sourceMappingURL=Toggle-BCPcvk4N.js.map
