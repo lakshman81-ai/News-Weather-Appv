@@ -35,28 +35,23 @@ function UpAheadPage() {
     const { toggleWatchlist, isWatched } = useWatchlist();
 
     const loadData = useCallback(async (forceRefresh = false) => {
-        // If force refresh, reset phases slightly or just ensure we do fetch live
         if (forceRefresh) {
             setIsRefreshing(true);
-            setLoadingPhase(1); // Reset to indicate working
+            setLoadingPhase(1);
         } else {
              setLoading(true);
              setLoadingPhase(0);
         }
 
-        // PHASE 1: Local Cache (Immediate)
-        // Only load cache if we are starting fresh (not a manual refresh)
         if (!forceRefresh) {
             const cached = loadFromCache();
             if (cached) {
                 setData(cached);
-                setLoading(false); // Show content immediately
+                setLoading(false);
                 setLoadingPhase(1);
             }
         }
 
-        // PHASE 2: Static Data (Fast)
-        // Always fetch static to get base events
         try {
             const staticData = await fetchStaticUpAheadData();
             if (staticData) {
@@ -71,8 +66,6 @@ function UpAheadPage() {
             console.warn("Static fetch failed", e);
         }
 
-        // PHASE 3: Live Data (Background)
-        // Use settings to fetch live
         setIsRefreshing(true);
         try {
             const upAheadSettings = settings.upAhead || {
@@ -84,7 +77,6 @@ function UpAheadPage() {
 
             setData(prev => {
                 const merged = mergeUpAheadData(prev, liveData);
-                // Save complete dataset to cache
                 saveToCache(merged);
                 return merged;
             });
@@ -97,25 +89,15 @@ function UpAheadPage() {
         }
     }, [settings.upAhead]);
 
-    // Initial Load
     useEffect(() => {
         loadData(false);
     }, [loadData]);
 
-    // Handle Blacklist removal
     const handleRemoveFromPlan = (id) => {
         if (!id) return;
         if (plannerStorage.addToBlacklist) {
             plannerStorage.addToBlacklist(id);
             setBlacklist(plannerStorage.getBlacklist());
-            // Re-merge/process logic is implied by state update usually,
-            // but since we pre-calculate weekly_plan in service, we might need to soft-refresh.
-            // For now, we rely on the next render or manual refresh to clean up completely,
-            // but we can filter `data` locally for immediate UI feedback if needed.
-            // Simplified: Force a re-merge of current data?
-            // Actually, `mergeUpAheadData` calls `generateWeeklyPlan` which reads blacklist (if passed).
-            // But we can't easily trigger just that.
-            // Let's just reload data (cached/static will be fast).
             loadData(false);
         }
     };
@@ -131,7 +113,6 @@ function UpAheadPage() {
         alert("Added to Plan!");
     };
 
-    // --- RENDER HELPERS ---
     const formatConciseDate = (dateStr) => {
         if (!dateStr) return 'Coming Soon';
         const d = new Date(dateStr);
@@ -142,24 +123,66 @@ function UpAheadPage() {
         return `${dayName}, ${dayNum} ${month}`;
     };
 
-    const CompactEventList = ({ items, colorClass, emptyMessage, isOffer = false }) => {
+    // --- RENDER HELPERS ---
+
+    const PosterCard = ({ item, colorClass }) => (
+        <div className="poster-card" style={{ minWidth: '220px', scrollSnapAlign: 'start' }}>
+            {/* Placeholder gradient background if no image */}
+            <div style={{
+                height: '100%', width: '100%',
+                background: `linear-gradient(135deg, var(--bg-secondary), var(--bg-card))`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '3rem', opacity: 0.3
+            }}>
+                {view === 'movies' ? '🎬' : '📅'}
+            </div>
+            <div className="poster-card__content">
+                <div className={`ua-badge ${colorClass}`} style={{ marginBottom: '8px', display: 'inline-block' }}>
+                    {formatConciseDate(item.date || item.releaseDate)}
+                </div>
+                <div className="poster-card__title">{item.title}</div>
+                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>
+                    {item.description ? (item.description.length > 60 ? item.description.substring(0, 60) + '...' : item.description) : ''}
+                </div>
+                <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="btn btn--secondary" style={{ padding: '4px 8px', fontSize: '0.7rem' }}>Details</a>
+                    <button className="btn btn--primary" onClick={() => handleAddToPlan(item, item.date || item.releaseDate)} style={{ padding: '4px 8px', fontSize: '0.7rem' }}>+ Plan</button>
+                </div>
+            </div>
+        </div>
+    );
+
+    const HorizontalScrollSection = ({ items, colorClass, emptyMessage }) => {
         if (!items || items.length === 0) return <div className="empty-state"><p>{emptyMessage}</p></div>;
         return (
-            <div className="ua-wk-card" style={{border: 'none', background: 'transparent', padding: 0}}>
-                <ul className="ua-wk-list">
-                    {items.map((item, i) => {
-                        const dateText = formatConciseDate(item.date || item.releaseDate);
-                        return (
-                            <li key={i} className="ua-wk-item" style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'10px', background: 'var(--bg-secondary)', padding: '12px', borderRadius: '12px', marginBottom: '8px'}}>
-                                <a href={item.link} target="_blank" rel="noopener noreferrer" style={{textDecoration:'none', color:'inherit', flex:1, overflow:'hidden', display:'flex', alignItems:'center', gap: '8px'}}>
-                                    {isOffer && <span style={{fontSize:'1.2rem'}}>🏷️</span>}
-                                    <span className="ua-wk-text" style={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', fontSize: '0.95rem', fontWeight: 500}}>{item.title}</span>
-                                </a>
-                                <span className={`ua-wk-date ${colorClass}`} style={{whiteSpace:'nowrap', flexShrink:0, fontSize: '0.8rem', fontWeight: 600}}>{dateText}</span>
-                            </li>
-                        );
-                    })}
-                </ul>
+            <div className="timeline-card-row" style={{ padding: '10px 0' }}>
+                {items.map((item, i) => (
+                    <PosterCard key={i} item={item} colorClass={colorClass} />
+                ))}
+            </div>
+        );
+    };
+
+    const GridSection = ({ items, colorClass, emptyMessage, isOffer = false }) => {
+        if (!items || items.length === 0) return <div className="empty-state"><p>{emptyMessage}</p></div>;
+        return (
+            <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                {items.map((item, i) => (
+                    <div key={i} className="modern-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div className={`ua-badge ${colorClass}`}>{formatConciseDate(item.date || item.releaseDate)}</div>
+                            {isOffer && <span style={{ fontSize: '1.2rem' }}>🏷️</span>}
+                        </div>
+                        <h3 className="modern-card__title" style={{ marginTop: '8px' }}>{item.title}</h3>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '8px 0', flex: 1 }}>
+                            {item.description || 'No description available.'}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                             <a href={item.link} target="_blank" rel="noopener noreferrer" className="ua-source-link">Details ↗</a>
+                             <button className="ua-cal-btn" onClick={() => handleAddToPlan(item, item.date || item.releaseDate)}>+ Plan</button>
+                        </div>
+                    </div>
+                ))}
             </div>
         );
     };
@@ -243,84 +266,95 @@ function UpAheadPage() {
                 </div>
             )}
 
-            <div className="ua-view-toggle scrollable-tabs">
-                <button className={`ua-toggle-btn ${view === 'plan' ? 'active' : ''}`} onClick={() => setView('plan')}>Plan My Week</button>
-                <button className={`ua-toggle-btn ${view === 'offers' ? 'active' : ''}`} onClick={() => setView('offers')}>Offers</button>
-                <button className={`ua-toggle-btn ${view === 'movies' ? 'active' : ''}`} onClick={() => setView('movies')}>Releasing Soon</button>
-                <button className={`ua-toggle-btn ${view === 'events' ? 'active' : ''}`} onClick={() => setView('events')}>Upcoming Events</button>
-                <button className={`ua-toggle-btn ${view === 'alerts' ? 'active' : ''}`} onClick={() => setView('alerts')}>Alerts</button>
-                <button className={`ua-toggle-btn ${view === 'festivals' ? 'active' : ''}`} onClick={() => setView('festivals')}>Festivals</button>
-                <button className={`ua-toggle-btn ${view === 'feed' ? 'active' : ''}`} onClick={() => setView('feed')}>Timeline</button>
-            </div>
+            <main className="main-content">
+                <div className="ua-view-toggle scrollable-tabs">
+                    <button className={`ua-toggle-btn ${view === 'plan' ? 'active' : ''}`} onClick={() => setView('plan')}>Plan My Week</button>
+                    <button className={`ua-toggle-btn ${view === 'offers' ? 'active' : ''}`} onClick={() => setView('offers')}>Offers</button>
+                    <button className={`ua-toggle-btn ${view === 'movies' ? 'active' : ''}`} onClick={() => setView('movies')}>Releasing Soon</button>
+                    <button className={`ua-toggle-btn ${view === 'events' ? 'active' : ''}`} onClick={() => setView('events')}>Upcoming Events</button>
+                    <button className={`ua-toggle-btn ${view === 'alerts' ? 'active' : ''}`} onClick={() => setView('alerts')}>Alerts</button>
+                    <button className={`ua-toggle-btn ${view === 'festivals' ? 'active' : ''}`} onClick={() => setView('festivals')}>Festivals</button>
+                    <button className={`ua-toggle-btn ${view === 'feed' ? 'active' : ''}`} onClick={() => setView('feed')}>Timeline</button>
+                </div>
 
-            {view === 'plan' && (
-                <div className="ua-weekly-plan">
-                     <ProgressBar active={loading || isRefreshing} style={{ marginBottom: '10px', borderRadius: '4px' }} />
-                     {(data.weekly_plan && Array.isArray(data.weekly_plan)) ? data.weekly_plan.map((dayData, dIdx) => (
-                         <div key={dIdx} className="ua-plan-day-row">
-                             <div className="ua-plan-ribbon">
-                                 <div style={{fontSize: '0.95rem', fontWeight: 800, whiteSpace: 'nowrap'}}>
-                                     {dayData.day} <span style={{opacity: 0.8, fontWeight: 400}}>{dayData.date}</span>
+                {view === 'plan' && (
+                    <div className="ua-weekly-plan">
+                         <ProgressBar active={loading || isRefreshing} style={{ marginBottom: '10px', borderRadius: '4px' }} />
+                         {(data.weekly_plan && Array.isArray(data.weekly_plan)) ? data.weekly_plan.map((dayData, dIdx) => (
+                             <div key={dIdx} className="modern-card" style={{ marginBottom: '16px' }}>
+                                 <div className="modern-card__header" style={{ paddingBottom: '0', borderBottom: 'none' }}>
+                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div className="ua-plan-ribbon" style={{ borderRadius: '8px' }}>
+                                            <div style={{fontSize: '0.95rem', fontWeight: 800, whiteSpace: 'nowrap'}}>
+                                                {dayData.day}
+                                            </div>
+                                        </div>
+                                        <span style={{opacity: 0.8, fontWeight: 500, color: 'var(--text-muted)'}}>{dayData.date}</span>
+                                     </div>
+                                 </div>
+                                 <div className="ua-plan-day-content" style={{ border: 'none', padding: '8px 0 0 0', background: 'transparent' }}>
+                                     {dayData.items && dayData.items.length > 0 ? (
+                                         dayData.items.map((item, idx) => (
+                                             <div key={idx} className="ua-plan-event-item" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                                                  <button className="ua-plan-delete-btn" onClick={(e) => { e.preventDefault(); handleRemoveFromPlan(item.id); }} aria-label="Remove event" style={{background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:'0.9rem', padding: '0 8px 0 0'}}>✕</button>
+                                                 <a href={item.link} target="_blank" rel="noopener noreferrer" style={{flex:1, display:'flex', alignItems:'center', gap:'10px', textDecoration:'none', color:'inherit'}}>
+                                                     <span className="ua-event-icon">{item.icon}</span>
+                                                     <div style={{display:'flex', flexDirection:'column'}}>
+                                                         <span className="ua-event-title">{item.title}</span>
+                                                         {item.isOffer && <span className="ua-offer-badge">🛒 Ends Today</span>}
+                                                     </div>
+                                                 </a>
+                                                 <div style={{display:'flex', gap:'8px'}}>
+                                                     <button className="ua-plan-action-btn" onClick={(e) => { e.preventDefault(); downloadCalendarEvent(item.title, item.description || item.title); }} title="Add to Calendar" style={{background:'none', border:'none', cursor:'pointer', fontSize:'1.1rem'}}>📅</button>
+                                                 </div>
+                                             </div>
+                                         ))
+                                     ) : <span className="ua-plan-empty" style={{padding: '10px', color: 'var(--text-muted)', fontSize: '0.9rem'}}>-</span>}
                                  </div>
                              </div>
-                             <div className="ua-plan-day-content">
-                                 {dayData.items && dayData.items.length > 0 ? (
-                                     dayData.items.map((item, idx) => (
-                                         <div key={idx} className="ua-plan-event-item">
-                                              <button className="ua-plan-delete-btn" onClick={(e) => { e.preventDefault(); handleRemoveFromPlan(item.id); }} aria-label="Remove event" style={{background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:'0.9rem', padding: '0 8px 0 0'}}>✕</button>
-                                             <a href={item.link} target="_blank" rel="noopener noreferrer" style={{flex:1, display:'flex', alignItems:'center', gap:'10px', textDecoration:'none', color:'inherit'}}>
-                                                 <span className="ua-event-icon">{item.icon}</span>
-                                                 <div style={{display:'flex', flexDirection:'column'}}>
-                                                     <span className="ua-event-title">{item.title}</span>
-                                                     {item.isOffer && <span className="ua-offer-badge">🛒 Ends Today</span>}
-                                                 </div>
-                                             </a>
-                                             <div style={{display:'flex', gap:'8px'}}>
-                                                 <button className="ua-plan-action-btn" onClick={(e) => { e.preventDefault(); downloadCalendarEvent(item.title, item.description || item.title); }} title="Add to Calendar" style={{background:'none', border:'none', cursor:'pointer', fontSize:'1.1rem'}}>📅</button>
-                                             </div>
-                                         </div>
-                                     ))
-                                 ) : <span className="ua-plan-empty" style={{padding: '10px', color: 'var(--text-muted)', fontSize: '0.9rem'}}>-</span>}
-                             </div>
-                         </div>
-                     )) : <div style={{textAlign:'center', padding:'20px'}}>Data unavailable.</div>}
-                </div>
-            )}
+                         )) : <div style={{textAlign:'center', padding:'20px'}}>Data unavailable.</div>}
+                    </div>
+                )}
 
-            {view === 'movies' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={data.sections?.movies} colorClass="text-accent-info" emptyMessage="No upcoming movie releases found." /></div>}
-            {view === 'offers' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={[...(data.sections?.shopping || []), ...(data.sections?.airlines || [])]} colorClass="text-accent-success" emptyMessage="No offers found." isOffer={true} /><div style={{textAlign:'center', marginTop:'10px', fontSize:'0.8rem', color:'var(--text-muted)'}}>Including Airline Offers</div></div>}
-            {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={[...(data.sections?.events || []), ...(data.sections?.sports || [])]} colorClass="text-accent-primary" emptyMessage="No upcoming events found." /></div>}
-            {view === 'alerts' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={combinedAlerts} colorClass="text-accent-error" emptyMessage="No alerts found." /></div>}
-            {view === 'festivals' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><CompactEventList items={data.sections?.festivals} colorClass="text-accent-warning" emptyMessage="No festivals found." /></div>}
+                {view === 'movies' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><HorizontalScrollSection items={data.sections?.movies} colorClass="type-movie" emptyMessage="No upcoming movie releases found." /></div>}
 
-            {view === 'feed' && (
-                <div className="ua-timeline">
-                    {data.timeline.map((day) => (
-                        <div key={day.date} className="ua-day-section">
-                            <div className="ua-day-header">
-                                <div className="ua-day-label">{day.dayLabel}</div>
-                                <div className="ua-date-sub">{day.date}</div>
-                            </div>
-                            {day.items?.map(item => (
-                                <div key={item.id} className="ua-media-card">
-                                    <div className="ua-media-content">
-                                        <div className="ua-media-header">
-                                            <span className={`ua-badge type-${item.type}`}>{item.type.toUpperCase()}</span>
-                                            <button className={`ua-watch-btn ${isWatched(item.id) ? 'active' : ''}`} onClick={() => toggleWatchlist(item.id)}>{isWatched(item.id) ? '★' : '☆'}</button>
-                                        </div>
-                                        <h3 className="ua-media-title">{item.title}</h3>
-                                        <p className="ua-media-desc">{item.description ? (item.description.length > 100 ? item.description.substring(0, 100) + '...' : item.description) : ''}</p>
-                                        <div className="ua-media-footer">
-                                            {item.link && <a href={item.link} target="_blank" rel="noopener noreferrer" className="ua-source-link">Read Source ↗</a>}
-                                            <button className="ua-cal-btn" onClick={() => handleAddToPlan(item, day.date)} title="Add to Plan My Week">📌 Plan</button>
+                {view === 'offers' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={[...(data.sections?.shopping || []), ...(data.sections?.airlines || [])]} colorClass="type-shopping" emptyMessage="No offers found." isOffer={true} /><div style={{textAlign:'center', marginTop:'10px', fontSize:'0.8rem', color:'var(--text-muted)'}}>Including Airline Offers</div></div>}
+
+                {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={[...(data.sections?.events || []), ...(data.sections?.sports || [])]} colorClass="type-event" emptyMessage="No upcoming events found." /></div>}
+
+                {view === 'alerts' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={combinedAlerts} colorClass="type-alert" emptyMessage="No alerts found." /></div>}
+
+                {view === 'festivals' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><HorizontalScrollSection items={data.sections?.festivals} colorClass="type-festival" emptyMessage="No festivals found." /></div>}
+
+                {view === 'feed' && (
+                    <div className="ua-timeline">
+                        {data.timeline.map((day) => (
+                            <div key={day.date} className="ua-day-section timeline-track">
+                                <div className="ua-day-header">
+                                    <div className="ua-day-label">{day.dayLabel}</div>
+                                    <div className="ua-date-sub">{day.date}</div>
+                                </div>
+                                {day.items?.map(item => (
+                                    <div key={item.id} className="timeline-card" style={{ marginBottom: '16px' }}>
+                                        <div className="ua-media-content" style={{ padding: 0 }}>
+                                            <div className="ua-media-header">
+                                                <span className={`ua-badge type-${item.type}`}>{item.type.toUpperCase()}</span>
+                                                <button className={`ua-watch-btn ${isWatched(item.id) ? 'active' : ''}`} onClick={() => toggleWatchlist(item.id)}>{isWatched(item.id) ? '★' : '☆'}</button>
+                                            </div>
+                                            <h3 className="ua-media-title">{item.title}</h3>
+                                            <p className="ua-media-desc">{item.description ? (item.description.length > 100 ? item.description.substring(0, 100) + '...' : item.description) : ''}</p>
+                                            <div className="ua-media-footer">
+                                                {item.link && <a href={item.link} target="_blank" rel="noopener noreferrer" className="ua-source-link">Read Source ↗</a>}
+                                                <button className="ua-cal-btn" onClick={() => handleAddToPlan(item, day.date)} title="Add to Plan My Week">📌 Plan</button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            )}
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </main>
         </div>
     );
 }

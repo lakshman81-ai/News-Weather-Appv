@@ -1,13 +1,10 @@
-import React, { useState, useEffect, useSyncExternalStore } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Toggle from '../components/Toggle';
 import { DEFAULT_SETTINGS } from '../utils/storage';
 import { useSettings } from '../context/SettingsContext';
 import { discoverFeeds } from '../utils/feedDiscovery';
 import { APP_VERSION } from '../utils/version';
-import logStore from '../utils/logStore';
-import { getAllSectionHealth } from '../utils/sectionHealth';
-import { SECTION_KEYWORDS } from '../data/sectionKeywords';
 import { ENTITY_OVERRIDES } from '../data/entityOverrides';
 import { computeImpactScore } from '../services/rssAggregator';
 import DebugTab from '../components/DebugTab';
@@ -50,9 +47,6 @@ function SettingsPage() {
 
     // Keyword Input State (Dynamic for all categories)
     const [keywordInputs, setKeywordInputs] = useState({});
-
-    // Accordion State for Up Ahead Categories
-    const [expandedCategory, setExpandedCategory] = useState(null);
 
     // Tier Input State
     const [tierInputs, setTierInputs] = useState({ tier1: '', tier2: '', tier3: '' });
@@ -229,7 +223,7 @@ function SettingsPage() {
     // --- TABS ---
     const tabs = [
         { id: 'general', label: 'General', icon: '⚙️' },
-        { id: 'ranking', label: 'Ranking & Logic', icon: '🧠' },
+        { id: 'ranking', label: 'Ranking', icon: '🧠' },
         { id: 'weather', label: 'Weather', icon: '🌤️' },
         { id: 'sources', label: 'Sources', icon: '📡' },
         { id: 'market', label: 'Market', icon: '📈' },
@@ -402,14 +396,6 @@ function SettingsPage() {
                     </div>
                 );
 
-            case 'upahead':
-                // Deprecated (Merged into Ranking)
-                // Redirect logic could go here, but for now we just show a message or the legacy view?
-                // Actually, let's just keep the Global Config here if user clicks it, but main ranking is moved.
-                // Or better: Redirect/Hide.
-                // For this step, I'll remove it from the tabs list above, so this case is unreachable via UI.
-                return null;
-
             case 'market':
                 return (
                     <div className="settings-tab-content">
@@ -424,16 +410,12 @@ function SettingsPage() {
                     </div>
                 );
 
-            case 'logic':
-                // Deprecated (Merged)
-                return null;
-
             case 'sandbox':
                 return (
                     <div className="settings-tab-content">
                         <SectionTitle icon="🧪" title="Ranking Sandbox" />
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '15px' }}>
-                            Simulate how the current settings affect an article's score. Change settings in the "Custom Ranking" tab to see impact here.
+                            Simulate how the current settings affect an article's score. Change settings in the "Ranking" tab to see impact here.
                         </div>
 
                         <SettingCard>
@@ -605,10 +587,12 @@ function SettingsPage() {
             </div>
             <style>{`
                 .settings-layout { display: flex; flex: 1; overflow: hidden; background: var(--bg-primary); }
-                .settings-sidebar { width: 60px; background: var(--bg-secondary); border-right: 1px solid var(--border-default); display: flex; flex-direction: column; padding: 10px 5px; overflow-y: auto; flex-shrink: 0; }
-                .settings-tab-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 5px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 8px; margin-bottom: 5px; }
+                .settings-sidebar { width: 72px; background: var(--bg-secondary); border-right: 1px solid var(--border-default); display: flex; flex-direction: column; padding: 10px 5px; overflow-y: auto; flex-shrink: 0; }
+                .settings-tab-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 4px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 8px; margin-bottom: 8px; width: 100%; transition: background 0.2s; min-height: 50px; }
                 .settings-tab-btn.active { background: var(--accent-primary); color: #fff; }
-                .tab-icon { font-size: 1.5rem; } .tab-label { display: none; }
+                .tab-icon { font-size: 1.5rem; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
+                .tab-label { font-size: 0.6rem; text-align: center; line-height: 1.1; display: none; }
+                @media (min-height: 600px) { .tab-label { display: block; } }
                 .settings-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
                 .settings-scroll-area { flex: 1; overflow-y: auto; padding: 15px; }
                 .settings-footer { flex-shrink: 0; background: var(--bg-secondary); border-top: 1px solid var(--border-default); padding: 15px; }
