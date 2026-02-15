@@ -125,16 +125,27 @@ This application is a Progressive Web App (PWA), meaning you can install it on y
 1. Look for the install icon (usually a computer with a down arrow) in the right side of the address bar.
 2. Click it and select **"Install"**.
 
-## Deployment Troubleshooting
+## Deployment Troubleshooting 🚨
 
-If you see a blank white screen, "Initializing application...", or 404 errors on GitHub Pages:
+**If you see a blank white screen or 404 errors, check your deployment source immediately.**
 
+There are two valid ways to deploy this app:
+
+### Option A: The Recommended Way (Automated)
 1.  Go to your GitHub Repository -> **Settings** -> **Pages**.
-2.  Ensure **Source** is set to **Deploy from a branch**.
-3.  **Important:** Change the branch to **`gh-pages`** and folder to **`/(root)`**.
-4.  Save the changes.
+2.  Set **Source** to **Deploy from a branch**.
+3.  Select **Branch: `gh-pages`** and **Folder: `/(root)`**.
+4.  Save.
+    *   *Why?* The system automatically builds the app and pushes the compiled code to the `gh-pages` branch. This is the cleanest method.
 
-*The `gh-pages` branch is automatically maintained by the "Deploy to GitHub Pages" action. Do not deploy from `main` manually.*
+### Option B: The "Main Branch" Way (Manual)
+1.  Go to your GitHub Repository -> **Settings** -> **Pages**.
+2.  Set **Source** to **Deploy from a branch**.
+3.  Select **Branch: `main`** and **Folder: `/docs`**.
+4.  Save.
+    *   *Why?* The app is pre-compiled into the `docs/` folder. You must tell GitHub Pages to look there.
+
+**❌ DO NOT set the folder to `/(root)` on the `main` branch.** This will serve the source code instead of the app, causing crashes.
 
 ## License
 
