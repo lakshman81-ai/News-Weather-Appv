@@ -11,11 +11,10 @@ const CACHE_KEY = 'buzz_page_cache';
 
 /**
  * Tech & Social Page
- * Social Trends Distribution:
- * - 30% World
- * - 30% India
- * - 20% Tamil Nadu
- * - 20% Muscat/Local
+ * - "Buzz Hub" Dashboard
+ * - Entertainment: Netflix-style grid
+ * - Social: Masonry Grid of images/trends
+ * - Tech: Modern Cards
  */
 function TechSocialPage() {
     const { newsData, refreshNews, loading: contextLoading, loadSection } = useNews();
@@ -32,13 +31,11 @@ function TechSocialPage() {
             const cached = localStorage.getItem(CACHE_KEY);
             if (cached) {
                 const parsed = JSON.parse(cached);
-                // Check age (8 hours)
                 const age = Date.now() - (parsed.timestamp || 0);
                 if (age < 8 * 60 * 60 * 1000) {
                      setCachedData(parsed);
                      setLoadingPhase(1);
                 } else {
-                     console.log('[Buzz] Cache expired, showing anyway until live loads');
                      setCachedData(parsed);
                      setLoadingPhase(1);
                 }
@@ -61,8 +58,6 @@ function TechSocialPage() {
         return newsArray.filter(item => (now - (item.publishedAt || 0)) < limitMs);
     }, [settings.freshnessLimitHours]);
 
-    // Determine which data to use (Live > Cache)
-    // We prefer Live if available, else Cache
     const hasLiveData = newsData.entertainment && newsData.entertainment.length > 0;
 
     useEffect(() => {
@@ -108,13 +103,11 @@ function TechSocialPage() {
         return raw.map(item => {
             const text = (item.title + ' ' + (item.summary || '')).toLowerCase();
 
-            // Content-based classification (Overrides source)
             if (KEYWORDS.tamil.some(k => text.includes(k))) return { ...item, region: 'tamil' };
             if (KEYWORDS.hindi.some(k => text.includes(k))) return { ...item, region: 'hindi' };
             if (KEYWORDS.hollywood.some(k => text.includes(k))) return { ...item, region: 'hollywood' };
             if (KEYWORDS.ott.some(k => text.includes(k))) return { ...item, region: 'ott' };
 
-            // Fallback to existing region if no specific keyword found
             return item;
         });
     }, [displayData.entertainment]);
@@ -124,19 +117,13 @@ function TechSocialPage() {
     // ============================================
 
     const socialTrends = useMemo(() => {
-        // Keywords for each region
         const REGION_KEYWORDS = {
-            world: ['global', 'world', 'international', 'usa', 'europe', 'uk', 'china',
-                'twitter', 'x.com', 'meta', 'tiktok', 'instagram', 'viral'],
-            india: ['india', 'indian', 'bollywood', 'cricket', 'modi', 'delhi',
-                'mumbai', 'bangalore', 'hyderabad', 'ipl', 'bcci'],
-            tamilnadu: ['chennai', 'tamil', 'tamilnadu', 'kollywood', 'rajini',
-                'kamal', 'vijay', 'trichy', 'coimbatore', 'madurai', 'tn'],
-            muscat: ['muscat', 'oman', 'gulf', 'gcc', 'uae', 'dubai', 'arab',
-                'middle east', 'expat', 'omani']
+            world: ['global', 'world', 'international', 'usa', 'europe', 'uk', 'china', 'twitter', 'x.com', 'meta', 'tiktok', 'instagram', 'viral'],
+            india: ['india', 'indian', 'bollywood', 'cricket', 'modi', 'delhi', 'mumbai', 'bangalore', 'hyderabad', 'ipl', 'bcci'],
+            tamilnadu: ['chennai', 'tamil', 'tamilnadu', 'kollywood', 'rajini', 'kamal', 'vijay', 'trichy', 'coimbatore', 'madurai', 'tn'],
+            muscat: ['muscat', 'oman', 'gulf', 'gcc', 'uae', 'dubai', 'arab', 'middle east', 'expat', 'omani']
         };
 
-        // Categorize social news by region
         const categorizeByRegion = (newsItem) => {
             const text = (newsItem.title + ' ' + (newsItem.summary || '')).toLowerCase();
             if (REGION_KEYWORDS.tamilnadu.some(kw => text.includes(kw))) return 'tamilnadu';
@@ -145,52 +132,28 @@ function TechSocialPage() {
             return 'world';
         };
 
-        // Get all social news
         const allSocial = filterOldNews(displayData.social || []);
         const worldNews = filterOldNews(displayData.world || []);
         const indiaNews = filterOldNews(displayData.india || []);
         const chennaiNews = filterOldNews(displayData.chennai || []);
-        const localNews = filterOldNews(displayData.local || []); // Muscat/Oman
+        const localNews = filterOldNews(displayData.local || []);
 
-        // Categorize all news
-        const regionBuckets = {
-            world: [],
-            india: [],
-            tamilnadu: [],
-            muscat: []
-        };
+        const regionBuckets = { world: [], india: [], tamilnadu: [], muscat: [] };
 
-        // Add social news to appropriate buckets
         allSocial.forEach(item => {
             const region = categorizeByRegion(item);
             regionBuckets[region].push({ ...item, source: 'social' });
         });
 
-        // Add world news to world bucket (filter for social trends)
-        worldNews
-            .filter(item => item.title?.toLowerCase().includes('trend') ||
-                item.title?.toLowerCase().includes('viral') ||
-                item.title?.toLowerCase().includes('social'))
+        worldNews.filter(item => item.title?.toLowerCase().includes('trend') || item.title?.toLowerCase().includes('viral') || item.title?.toLowerCase().includes('social'))
             .forEach(item => regionBuckets.world.push({ ...item, source: 'world' }));
 
-        // Add India news to india bucket
-        indiaNews
-            .filter(item => item.title?.toLowerCase().includes('trend') ||
-                item.title?.toLowerCase().includes('viral') ||
-                item.title?.toLowerCase().includes('social'))
+        indiaNews.filter(item => item.title?.toLowerCase().includes('trend') || item.title?.toLowerCase().includes('viral') || item.title?.toLowerCase().includes('social'))
             .forEach(item => regionBuckets.india.push({ ...item, source: 'india' }));
 
-        // Add Chennai news to TN bucket
-        chennaiNews.forEach(item => {
-            regionBuckets.tamilnadu.push({ ...item, source: 'chennai' });
-        });
+        chennaiNews.forEach(item => { regionBuckets.tamilnadu.push({ ...item, source: 'chennai' }); });
+        localNews.forEach(item => { regionBuckets.muscat.push({ ...item, source: 'local' }); });
 
-        // Add Local (Muscat) news to Muscat bucket
-        localNews.forEach(item => {
-            regionBuckets.muscat.push({ ...item, source: 'local' });
-        });
-
-        // Get target counts from settings (defaults if missing)
         const distribution = {
             world: settings.socialTrends?.worldCount ?? 8,
             india: settings.socialTrends?.indiaCount ?? 8,
@@ -198,15 +161,10 @@ function TechSocialPage() {
             muscat: settings.socialTrends?.muscatCount ?? 4
         };
 
-        // Build final mixed array
         const result = [];
-
-        // Add from each bucket according to counts
         Object.entries(distribution).forEach(([region, count]) => {
             const bucket = regionBuckets[region];
-            // Sort bucket by date if possible
             bucket.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0));
-
             const toAdd = bucket.slice(0, count);
             toAdd.forEach(item => {
                 result.push({
@@ -220,13 +178,10 @@ function TechSocialPage() {
             });
         });
 
-        // Sort by publishedAt (newest first)
         result.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0));
-
         return result;
     }, [displayData, settings.freshnessLimitHours, settings.socialTrends, filterOldNews]);
 
-    // Save to Cache when Live Data updates
     useEffect(() => {
         if (hasLiveData) {
             try {
@@ -250,11 +205,10 @@ function TechSocialPage() {
     }, [hasLiveData, newsData]);
 
     const handleRefresh = () => {
-        setLoadingPhase(3); // Show loading
+        setLoadingPhase(3);
         refreshNews(['technology', 'social', 'world', 'india', 'chennai', 'local']);
     };
 
-    // Navigation Sections
     const navSections = [
         { id: 'entertainment', icon: '🎬', label: 'Entertainment' },
         { id: 'social-trends', icon: '👥', label: 'Social Trends' },
@@ -262,7 +216,6 @@ function TechSocialPage() {
         { id: 'ai-innovation', icon: '🤖', label: 'AI & Innovation' }
     ];
 
-    // Back to Top Logic
     const [showBackToTop, setShowBackToTop] = useState(false);
     useEffect(() => {
         const handleScroll = () => {
@@ -280,6 +233,28 @@ function TechSocialPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Poster Card Component for Entertainment
+    const EntertainmentPoster = ({ item }) => (
+        <a href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="poster-card" style={{ textDecoration: 'none', display: 'block' }}>
+            {item.imageUrl ? (
+                <img src={item.imageUrl} alt={item.title} className="poster-card__image" loading="lazy" />
+            ) : (
+                <div style={{
+                    height: '100%', width: '100%',
+                    background: `linear-gradient(135deg, var(--bg-secondary), var(--bg-card))`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '3rem', opacity: 0.3
+                }}>
+                    🎬
+                </div>
+            )}
+            <div className="poster-card__content">
+                <div className="poster-card__title" style={{ fontSize: '0.9rem', marginBottom: '4px' }}>{item.title}</div>
+                <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{item.source}</div>
+            </div>
+        </a>
+    );
+
     return (
         <div className="page-container">
             <Header
@@ -291,73 +266,41 @@ function TechSocialPage() {
             <main className="main-content">
 
                 {/* Entertainment Hub */}
-                <section id="entertainment" className="news-section entertainment-hub">
-                    <h2 className="news-section__title news-section__title--entertainment">
-                        <span>🎬</span> Entertainment
-                    </h2>
+                <div id="entertainment" className="modern-card" style={{ marginBottom: '24px' }}>
+                    <div className="modern-card__header">
+                        <h2 className="modern-card__title">
+                            <span>🎬</span> Entertainment
+                        </h2>
+                    </div>
 
                     <ProgressBar active={contextLoading && loadingPhase > 1} style={{ marginBottom: '16px' }} />
 
                     <div className="entertainment-tabs">
-                        <button
-                            className={`ent-tab ${activeEntTab === 'tamil' ? 'ent-tab--active' : ''}`}
-                            onClick={() => setActiveEntTab('tamil')}
-                        >
-                            🎭 Tamil
-                        </button>
-                        <button
-                            className={`ent-tab ${activeEntTab === 'hindi' ? 'ent-tab--active' : ''}`}
-                            onClick={() => setActiveEntTab('hindi')}
-                        >
-                            🎪 Hindi
-                        </button>
-                        <button
-                            className={`ent-tab ${activeEntTab === 'hollywood' ? 'ent-tab--active' : ''}`}
-                            onClick={() => setActiveEntTab('hollywood')}
-                        >
-                            🎬 Hollywood
-                        </button>
-                        <button
-                            className={`ent-tab ${activeEntTab === 'ott' ? 'ent-tab--active' : ''}`}
-                            onClick={() => setActiveEntTab('ott')}
-                        >
-                            📺 OTT
-                        </button>
+                        <button className={`ent-tab ${activeEntTab === 'tamil' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('tamil')}>🎭 Tamil</button>
+                        <button className={`ent-tab ${activeEntTab === 'hindi' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('hindi')}>🎪 Hindi</button>
+                        <button className={`ent-tab ${activeEntTab === 'hollywood' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('hollywood')}>🎬 Hollywood</button>
+                        <button className={`ent-tab ${activeEntTab === 'ott' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('ott')}>📺 OTT</button>
                     </div>
 
-                    <div className="entertainment-content">
-                        <NewsSection
-                            title={activeEntTab === 'tamil' ? 'Tamil Cinema' :
-                                activeEntTab === 'hindi' ? 'Hindi Cinema' :
-                                    activeEntTab === 'hollywood' ? 'Hollywood' : 'OTT & Streaming'}
-                            icon={activeEntTab === 'tamil' ? '🎭' :
-                                activeEntTab === 'hindi' ? '🎪' :
-                                    activeEntTab === 'hollywood' ? '🎬' : '📺'}
-                            news={filterOldNews(processedEntertainment.filter(item => item.region === activeEntTab))}
-                            maxDisplay={
-                                activeEntTab === 'tamil' ? (settings.entertainment?.tamilCount ?? 5) :
-                                    activeEntTab === 'hindi' ? (settings.entertainment?.hindiCount ?? 5) :
-                                        activeEntTab === 'hollywood' ? (settings.entertainment?.hollywoodCount ?? 3) :
-                                            (settings.entertainment?.ottCount ?? 2)
-                            }
-                            hideTitle
-                            showCritics={false}
-                        />
+                    <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                        {filterOldNews(processedEntertainment.filter(item => item.region === activeEntTab)).slice(0, 8).map((item, idx) => (
+                            <EntertainmentPoster key={idx} item={item} />
+                        ))}
                     </div>
-                </section>
+                     {filterOldNews(processedEntertainment.filter(item => item.region === activeEntTab)).length === 0 && (
+                        <div className="empty-state">No entertainment news found for this category.</div>
+                    )}
+                </div>
 
-                {/* Social Trends with Distribution (Moved to Top) */}
-                <section id="social-trends" className="news-section">
-                    <h2 className="news-section__title news-section__title--social">
-                        <span>👥</span> Social Trends
-                    </h2>
+                {/* Social Trends */}
+                <div id="social-trends" className="modern-card" style={{ marginBottom: '24px' }}>
+                     <div className="modern-card__header">
+                        <h2 className="modern-card__title">
+                            <span>👥</span> Social Trends
+                        </h2>
+                    </div>
 
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                        gap: '16px',
-                        padding: '0 16px'
-                    }}>
+                    <div className="masonry-grid">
                         {socialTrends.map((item, idx) => (
                             <ImageCard
                                 key={idx}
@@ -370,48 +313,54 @@ function TechSocialPage() {
                                 size="medium"
                             />
                         ))}
-
                         {socialTrends.length === 0 && (
                             <div className="empty-state" style={{gridColumn: '1/-1'}}>
                                 <p>No social trends available</p>
                             </div>
                         )}
                     </div>
-                </section>
+                </div>
 
-                {/* Tech Section */}
-                <NewsSection
-                    id="tech-news"
-                    title="Tech & Startups"
-                    icon="🚀"
-                    colorClass="news-section__title--world"
-                    news={filterOldNews(displayData.technology)}
-                    maxDisplay={settings.sections?.technology?.count || 5} // Dynamic
-                    showCritics={false}
-                />
+                {/* Tech & AI Grid */}
+                <div className="dashboard-grid">
+                    <div id="tech-news" className="modern-card">
+                         <div className="modern-card__header">
+                            <h2 className="modern-card__title">
+                                <span>🚀</span> Tech & Startups
+                            </h2>
+                        </div>
+                        <NewsSection
+                            news={filterOldNews(displayData.technology)}
+                            maxDisplay={settings.sections?.technology?.count || 5}
+                            showCritics={false}
+                            hideTitle={true}
+                        />
+                    </div>
 
-                {/* AI & Innovation */}
-                <NewsSection
-                    id="ai-innovation"
-                    title="AI & Innovation"
-                    icon="🤖"
-                    colorClass="news-section__title--entertainment"
-                    news={filterOldNews(displayData.technology?.filter(
-                        item => item.title?.toLowerCase().includes('ai') ||
-                            item.title?.toLowerCase().includes('innovation') ||
-                            item.title?.toLowerCase().includes('machine learning') ||
-                            item.title?.toLowerCase().includes('chatgpt') ||
-                            item.title?.toLowerCase().includes('gemini')
-                    ))}
-                    maxDisplay={6}
-                    showCritics={false}
-                />
+                    <div id="ai-innovation" className="modern-card">
+                         <div className="modern-card__header">
+                            <h2 className="modern-card__title">
+                                <span>🤖</span> AI & Innovation
+                            </h2>
+                        </div>
+                        <NewsSection
+                            news={filterOldNews(displayData.technology?.filter(
+                                item => item.title?.toLowerCase().includes('ai') ||
+                                    item.title?.toLowerCase().includes('innovation') ||
+                                    item.title?.toLowerCase().includes('machine learning') ||
+                                    item.title?.toLowerCase().includes('chatgpt') ||
+                                    item.title?.toLowerCase().includes('gemini')
+                            ))}
+                            maxDisplay={6}
+                            showCritics={false}
+                            hideTitle={true}
+                        />
+                    </div>
+                </div>
             </main>
 
-            {/* Floating Section Navigator */}
             <SectionNavigator sections={navSections} />
 
-            {/* Back to Top Button */}
             <button
                 onClick={scrollToTop}
                 style={{
@@ -422,8 +371,7 @@ function TechSocialPage() {
                     width: '40px',
                     height: '40px',
                     borderRadius: '50%',
-                    background: 'rgba(var(--bg-card), 0.6)',
-                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    background: 'rgba(0,0,0,0.5)',
                     color: '#fff',
                     border: '1px solid rgba(255,255,255,0.2)',
                     fontSize: '1.2rem',
@@ -438,7 +386,6 @@ function TechSocialPage() {
                     justifyContent: 'center',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                 }}
-                className="back-to-top"
             >
                 ↑
             </button>
