@@ -72,4 +72,11 @@ ${a.map((u,f)=>`${f+1}. ${u}`).join(`
 === SCORING TEST (New Scoring: ${a.enableNewScoring}) ===`),Aw.forEach(i=>{const r={...i,sentiment:{label:"neutral"},keywords:[]},o=du(r,i.section);console.log(`
 Title: ${i.title}`),console.log(`Section: ${i.section}`),console.log(`Score: ${o.toFixed(2)}`)}),console.log(`
 =================================================
-`)}typeof window<"u"&&(window.runScoringTests=Mw);Tw();Q0.createRoot(document.getElementById("root")).render(s.jsx(N.StrictMode,{children:s.jsx(Cw,{children:s.jsx(Ew,{})})}));
+`)}typeof window<"u"&&(window.runScoringTests=Mw);Tw();try{const a=document.getElementById("root");if(!a)throw new Error("Root element not found");Q0.createRoot(a).render(s.jsx(N.StrictMode,{children:s.jsx(Cw,{children:s.jsx(Ew,{})})}))}catch(a){console.error("Critical Application Failure:",a);const i=document.getElementById("root");i&&(i.innerHTML=`
+      <div style="color: red; padding: 20px; text-align: center;">
+        <h1>Application Failed to Start</h1>
+        <p>${a.message}</p>
+        <pre>${a.stack}</pre>
+      </div>
+    `)}
+//# sourceMappingURL=index-BwTyq2NA.js.map

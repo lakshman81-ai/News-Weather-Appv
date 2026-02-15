@@ -12,10 +12,27 @@ if (typeof window !== 'undefined') {
 
 registerSW();
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
-)
+try {
+  const rootElement = document.getElementById('root');
+  if (!rootElement) throw new Error("Root element not found");
+
+  createRoot(rootElement).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>,
+  );
+} catch (e) {
+  console.error("Critical Application Failure:", e);
+  const root = document.getElementById('root');
+  if (root) {
+    root.innerHTML = `
+      <div style="color: red; padding: 20px; text-align: center;">
+        <h1>Application Failed to Start</h1>
+        <p>${e.message}</p>
+        <pre>${e.stack}</pre>
+      </div>
+    `;
+  }
+}
