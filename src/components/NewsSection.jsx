@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { getCredibilityStars } from '../data/sourceMetrics';
 import { addReadArticle, getSettings } from '../utils/storage';
 import { useNews } from '../context/NewsContext';
 import ProgressBar from './ProgressBar';
@@ -41,40 +40,22 @@ function NewsSection({
 
     // --- Section Health Badges ---
     const health = news.health || { status: 'ok' };
-    const isSingleSource = news.isSingleSource;
-
-    const getImpactStars = (score) => {
-        if (!score && score !== 0) return '';
-        if (score > 15) return '⭐⭐⭐⭐⭐';
-        if (score > 10) return '⭐⭐⭐⭐';
-        if (score > 6) return '⭐⭐⭐';
-        if (score > 3) return '⭐⭐';
-        return '⭐';
-    };
-
-    const getConfidenceClass = (confidence) => {
-        switch (confidence?.toUpperCase()) {
-            case 'HIGH': return 'news-item__confidence--high';
-            case 'MEDIUM': return 'news-item__confidence--medium';
-            case 'LOW': return 'news-item__confidence--low';
-            default: return '';
-        }
-    };
 
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return '';
+        // eslint-disable-next-line react-hooks/purity
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
         let interval = seconds / 31536000;
-        if (interval > 1) return Math.floor(interval) + "y ago";
+        if (interval > 1) return Math.floor(interval) + "y";
         interval = seconds / 2592000;
-        if (interval > 1) return Math.floor(interval) + "mo ago";
+        if (interval > 1) return Math.floor(interval) + "mo";
         interval = seconds / 86400;
-        if (interval > 1) return Math.floor(interval) + "d ago";
+        if (interval > 1) return Math.floor(interval) + "d";
         interval = seconds / 3600;
-        if (interval > 1) return Math.floor(interval) + "h ago";
+        if (interval > 1) return Math.floor(interval) + "h";
         interval = seconds / 60;
-        if (interval > 1) return Math.floor(interval) + "m ago";
-        return "Just now";
+        if (interval > 1) return Math.floor(interval) + "m";
+        return "Now";
     };
 
     const handleStoryClick = (item) => {
@@ -117,101 +98,71 @@ function NewsSection({
         return (
             <>
                 {extraContent}
-                <div className="news-list">
+                <div className="news-list-modern">
                     {displayNews.map((item, idx) => (
                         <article
                             key={item.id || idx}
-                            className="news-item"
+                            className="modern-news-card"
                             onClick={() => handleStoryClick(item)}
                             style={{ cursor: item.url ? 'pointer' : 'default' }}
                         >
-                            {/* Badges Row */}
-                            <div className="news-item__badges" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.85rem' }}>
-                                {getImpactStars(item.impactScore) && (
-                                    <span title={`Impact Score: ${item.impactScore?.toFixed(1)}`}>{getImpactStars(item.impactScore)}</span>
-                                )}
-                                {item.isBreaking && <span title="Breaking News">⚡</span>}
-                                {(!item.isBreaking && item.impactScore > trendingThreshold) && <span title="Trending">🔥</span>}
-
-                                {/* Audit Badges */}
-                                {auditResults[item.id] && (
-                                    <span className="audit-badges" style={{ display: 'flex', gap: '4px' }}>
-                                        {auditResults[item.id].consensus?.badge && <span title={`Corroborated by ${auditResults[item.id].consensus.count} sources`}>{auditResults[item.id].consensus.badge}</span>}
-                                        {auditResults[item.id].persistenceBadge && <span title="Persistence">{auditResults[item.id].persistenceBadge}</span>}
-                                        {auditResults[item.id].relevance?.badge && <span title="Relevance">{auditResults[item.id].relevance.badge}</span>}
-                                        {auditResults[item.id].anomaly?.badge && <span title={`Anomaly: ${auditResults[item.id].anomaly.type}`}>{auditResults[item.id].anomaly.badge}</span>}
-                                        {auditResults[item.id].breakingVerified && <span title="Verified">{auditResults[item.id].breakingVerified}</span>}
-                                    </span>
-                                )}
+                            <div className="mnc-header">
+                                <span className="mnc-source">{item.source}</span>
+                                <span className="mnc-time">{getTimeAgo(item.publishedAt) || item.time}</span>
                             </div>
 
-                            <h3 className="news-item__headline">
-                                • {item.headline}
-                                {item.url && (
-                                    <span style={{
-                                        fontSize: '0.7rem',
-                                        marginLeft: '8px',
-                                        color: 'var(--accent-secondary)'
-                                    }}>↗</span>
-                                )}
+                            <h3 className="mnc-headline">
+                                {item.headline}
                             </h3>
+
                             {item.summary && (
-                                <p className="news-item__summary">
+                                <p className="mnc-summary">
                                     {item.summary}
                                 </p>
                             )}
-                            {showCritics && item.criticsView && (
-                                <div className="news-item__critics">
-                                    <span>💬</span>
-                                    <div>
-                                        <strong style={{ color: 'var(--accent-secondary)', display: 'block', marginBottom: '2px' }}>Critics Take:</strong>
-                                        {item.criticsView}
-                                    </div>
-                                </div>
-                            )}
-                            <div className="news-item__meta">
-                                {item.sentiment && (
-                                    <span
-                                        className={`sentiment-badge sentiment--${item.sentiment.label}`}
-                                        title={`Sentiment: ${item.sentiment.label}`}
-                                    >
-                                        {item.sentiment.label === 'positive' ? '🟢' :
-                                            item.sentiment.label === 'negative' ? '🔴' : '⚪'}
-                                    </span>
-                                )}
-                                <span className="news-item__source">{item.source}</span>
+
+                            {/* Badges Row */}
+                            <div className="mnc-badges">
+                                {item.isBreaking && <span className="mnc-badge mnc-badge--breaking">⚡ Breaking</span>}
+                                {(!item.isBreaking && item.impactScore > trendingThreshold) && <span className="mnc-badge mnc-badge--trending">🔥 Trending</span>}
+
                                 {item.sourceCount > 1 && (
-                                    <span
-                                        className="news-item__consensus"
-                                        title={`Reported by ${item.sourceCount} sources`}
-                                    >
+                                    <span className="mnc-badge mnc-badge--consensus">
                                         🔔 {item.sourceCount} sources
                                     </span>
                                 )}
-                                <span>|</span>
-                                <span>{getTimeAgo(item.publishedAt) || item.time}</span>
-                                {item.sourceCount && (
-                                    <>
-                                        <span>|</span>
-                                        <span>#{item.sourceCount} Sources</span>
-                                    </>
+
+                                {item.sentiment && (
+                                    <span className={`mnc-badge mnc-badge--sentiment-${item.sentiment.label}`}>
+                                        {item.sentiment.label === 'positive' ? 'Positive' :
+                                            item.sentiment.label === 'negative' ? 'Negative' : 'Neutral'}
+                                    </span>
                                 )}
-                                <span>|</span>
-                                <span className={`news-item__confidence ${getConfidenceClass(item.confidence)}`}>
-                                    {item.confidence}
-                                </span>
                             </div>
+
+                            {showCritics && item.criticsView && (
+                                <div className="mnc-critics">
+                                    <strong>Critics Take:</strong> {item.criticsView}
+                                </div>
+                            )}
+
+                            {auditResults[item.id] && (
+                                <div className="mnc-audit-row">
+                                    {auditResults[item.id].consensus?.badge && <span>{auditResults[item.id].consensus.badge}</span>}
+                                    {auditResults[item.id].breakingVerified && <span>{auditResults[item.id].breakingVerified}</span>}
+                                </div>
+                            )}
                         </article>
                     ))}
                 </div>
 
                 {showExpand && hasMore && (
                     <div
-                        className="news-more"
+                        className="news-more-modern"
                         onClick={() => setExpanded(!expanded)}
                     >
+                        <span>{expanded ? 'Collapse' : `Show ${news.length - maxDisplay} more`}</span>
                         <span style={{ fontSize: '1.2rem' }}>{expanded ? '▲' : '▼'}</span>
-                        <span>{expanded ? 'Collapse' : `See ${news.length - maxDisplay} more stories`}</span>
                     </div>
                 )}
             </>
@@ -226,38 +177,25 @@ function NewsSection({
                 style={{ cursor: 'pointer' }}
                 title={`Tap to fold/unfold. Health: ${health.status.toUpperCase()}`}
             >
-                <span>{icon}</span>
-                {title}
+                <div className="news-title-left">
+                    <span className="news-icon">{icon}</span>
+                    <span className="news-text">{title}</span>
+                </div>
 
-                {/* Health Indicators */}
-                {health.status === 'critical' && <span title="Critical: Feed yield < 10% of average" style={{ marginLeft: '8px' }}>🔴</span>}
-                {health.status === 'warning' && <span title="Warning: Feed yield < 50% of average" style={{ marginLeft: '8px' }}>⚠️</span>}
-                {isSingleSource && news.length > 3 && <span title="Single Source: Potential echo chamber" style={{ marginLeft: '8px' }}>📡</span>}
+                <div className="news-title-right">
+                    {/* Health Indicators */}
+                    {health.status === 'critical' && <span title="Critical Feed" className="indicator-dot red"></span>}
+                    {health.status === 'warning' && <span title="Warning Feed" className="indicator-dot orange"></span>}
 
-                {news.length > 0 && (
-                    <span style={{ opacity: 0.6, fontSize: '0.9em', marginLeft: '6px' }}>({news.length})</span>
-                )}
+                    {news.length > 0 && (
+                        <span className="news-count">({news.length})</span>
+                    )}
 
-                {/* Collapse Indicator */}
-                <span style={{ marginLeft: '8px', fontSize: '0.8em', opacity: 0.5 }}>
-                    {isCollapsed ? '▼' : '▲'}
-                </span>
-
-                {/* Data Age Badge */}
-                {news.length > 0 && news[0].fetchedAt && (
-                    <span style={{
-                        fontSize: '0.65rem',
-                        marginLeft: 'auto',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        background: (Date.now() - news[0].fetchedAt) < 3600000 ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 165, 0, 0.2)',
-                        color: (Date.now() - news[0].fetchedAt) < 3600000 ? '#4caf50' : '#ffa726',
-                        border: '1px solid currentColor',
-                        fontWeight: 'normal'
-                    }}>
-                        {(Date.now() - news[0].fetchedAt) < 300000 ? 'LIVE' : getTimeAgo(news[0].fetchedAt)}
+                    {/* Collapse Indicator */}
+                    <span className="collapse-arrow">
+                        {isCollapsed ? '▼' : '▲'}
                     </span>
-                )}
+                </div>
             </h2>
 
             <ProgressBar active={loading} />
