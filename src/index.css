@@ -410,6 +410,115 @@ body {
   font-weight: 700;
 }
 
+/* Mutual Fund Styles */
+.mf-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mf-card--empty {
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+.mf-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-default);
+  padding-bottom: 8px;
+}
+
+.mf-card__date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.mf-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mf-fund {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.mf-fund:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.mf-fund__info {
+  flex: 1;
+  padding-right: 12px;
+}
+
+.mf-fund__name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.mf-fund__category {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.mf-fund__nav {
+  text-align: right;
+  min-width: 80px;
+}
+
+.mf-fund__value {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Roboto Mono', monospace;
+  color: var(--text-primary);
+}
+
+.mf-fund__change {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.mf-fund__change--up { color: var(--accent-success); }
+.mf-fund__change--down { color: var(--accent-danger); }
+
+.mf-card__toggle {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.8rem;
+  width: 100%;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.mf-card__toggle:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+}
+
+
 /* ========================================
    TECH/SOCIAL PAGE ENHANCEMENTS
    ======================================== */
@@ -428,16 +537,23 @@ body {
   background: #222;
   box-shadow: var(--shadow-card);
   transition: transform 0.3s;
+  border: 1px solid var(--border-default);
 }
 
 .poster-card:hover {
   transform: scale(1.02);
+  border-color: var(--accent-primary);
 }
 
 .poster-card__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.poster-card:hover .poster-card__image {
+  transform: scale(1.05);
 }
 
 .poster-card__content {
@@ -446,15 +562,21 @@ body {
   left: 0;
   right: 0;
   padding: var(--spacing-md);
-  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
   color: #fff;
+  z-index: 2;
 }
 
 .poster-card__title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.3;
   margin-bottom: 4px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ========================================
