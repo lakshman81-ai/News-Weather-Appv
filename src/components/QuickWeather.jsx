@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useWeather } from '../context/WeatherContext';
 import { useSettings } from '../context/SettingsContext';
 import WeatherIcon from './WeatherIcons';
-import { HumidityIcon, WindIcon } from './AppIcons';
 
 /**
- * Quick Weather Widget — Redesigned (AccuWeather Style)
- * Shows present conditions for all 3 cities at a glance,
- * plus an 8-hour synopsis/forecast for the selected city.
+ * Quick Weather Widget — Redesigned (Mobile & PC)
+ * Shows 3 cities side-by-side (squares), highlighted city text forecast,
+ * and a 12-hour comprehensive forecast ribbon below.
  */
 const QuickWeather = () => {
     const { weatherData, loading, error } = useWeather();
@@ -39,7 +38,9 @@ const QuickWeather = () => {
         muscat: 'Muscat',
         [cities[2]]: cities[2].charAt(0).toUpperCase() + cities[2].slice(1)
     };
-    const cityIcons = { chennai: '🏛️', trichy: '🏯', muscat: '📍', [cities[2]]: '📍' };
+    // Using shorter labels for square layout if needed, but standard labels are fine.
+
+    // Custom icons or emoji if desired, but WeatherIcon is better for consistent style
 
     const hour = new Date().getHours();
     let bgClass = 'qw-bg-day';
@@ -51,13 +52,23 @@ const QuickWeather = () => {
     const activeCityData = weatherData[activeCity];
     const severeWarning = getSevereWarning(activeCityData);
 
-    // Get 8-hour forecast
-    const hourlyForecast = activeCityData?.hourly24?.slice(0, 8) || [];
-    const timelineSummary = getTimelineSummary(activeCityData, cityLabels[activeCity]);
+    // Get 12-hour forecast (6 points: every 2 hours)
+    // hourly24 typically has 24 hours starting from current hour
+    const twelveHourForecast = [];
+    if (activeCityData?.hourly24) {
+        for (let i = 0; i < 12; i += 2) {
+            if (activeCityData.hourly24[i]) {
+                twelveHourForecast.push(activeCityData.hourly24[i]);
+            }
+        }
+    }
+
+    const textForecast = getNaturalTextForecast(activeCityData, cityLabels[activeCity]);
 
     return (
         <section className={`quick-weather-card ${bgClass}`}>
-            {/* All 3 Cities — Current Conditions */}
+
+            {/* 1. Top Row: 3 Cities Side-by-Side Squares */}
             <div className="qw-cities-grid">
                 {cities.map(city => {
                     const d = weatherData[city];
@@ -67,57 +78,46 @@ const QuickWeather = () => {
                     return (
                         <div
                             key={city}
-                            className={`qw-city-card ${isActive ? 'qw-city-card--active' : ''}`}
+                            className={`qw-city-square ${isActive ? 'qw-city-square--active' : ''}`}
                             onClick={() => setActiveCity(city)}
                         >
-                            <div className="qw-city-header">
-                                <span className="qw-city-icon">{cityIcons[city]}</span>
-                                <span className="qw-city-name">{cityLabels[city]}</span>
+                            <div className="qw-square-header">
+                                <span className="qw-square-name">{cityLabels[city]}</span>
                             </div>
-                            <div className="qw-city-temp-row">
-                                <span className="qw-city-temp" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{c.temp}°</span>
-                                <span className="qw-city-weather-icon">
-                                    {c.iconId ? <WeatherIcon id={c.iconId} size={36} /> : <span style={{fontSize:'2rem'}}>{c.icon}</span>}
-                                </span>
+                            <div className="qw-square-icon">
+                                {c.iconId ? <WeatherIcon id={c.iconId} size={40} /> : <span style={{fontSize:'2rem'}}>{c.icon}</span>}
                             </div>
-                            <div className="qw-city-condition" style={{fontSize: '0.75rem', opacity: 0.9}}>{c.condition}</div>
-                            <div className="qw-city-meta">
-                                <span>💧 {c.humidity ?? '--'}%</span>
-                                <span>💨 {c.windSpeed ?? '--'}</span>
-                            </div>
+                            <div className="qw-square-temp">{c.temp}°</div>
                         </div>
                     );
                 })}
             </div>
 
-            {/* 8-Hour Timeline Strip (AccuWeather Style) */}
-            {hourlyForecast.length > 0 && (
-                <div className="qw-timeline-section">
-                    <div className="qw-timeline-header">
-                        <span className="qw-timeline-label">{timelineSummary}</span>
-                        <span className="qw-timeline-link">Next 8 Hours</span>
-                    </div>
+            {/* 2. Highlighted City Text Forecast (Next 8 Hours) */}
+            <div className="qw-highlight-text-container">
+                <span className="qw-highlight-icon">🤖</span>
+                <span className="qw-highlight-text">{textForecast}</span>
+            </div>
 
-                    <div className="qw-timeline-strip-container">
-                        {hourlyForecast.map((slot, i) => (
-                            <div key={i} className="qw-timeline-slot-modern">
-                                <div className="qw-slot-time">{slot.label}</div>
-                                <div className="qw-slot-icon-wrapper">
-                                    {slot.iconId ? <WeatherIcon id={slot.iconId} size={32} /> : slot.icon}
-                                </div>
-                                <div className="qw-slot-temp">{slot.temp}°</div>
-                                <div className="qw-slot-precip">
-                                    {slot.prob > 20 ? (
-                                        <span className="qw-precip-badge">
-                                            💧 {slot.prob}%
-                                        </span>
-                                    ) : (
-                                        <span className="qw-precip-low">--</span>
-                                    )}
-                                </div>
+            {/* 3. 12-Hour Forecast Ribbon (Scrollable, 6 Items) */}
+            {twelveHourForecast.length > 0 && (
+                <div className="qw-forecast-ribbon">
+                    {twelveHourForecast.map((slot, i) => (
+                        <div key={i} className="qw-ribbon-item">
+                            <div className="qw-ribbon-time">{slot.label}</div>
+                            <div className="qw-ribbon-icon">
+                                {slot.iconId ? <WeatherIcon id={slot.iconId} size={32} /> : slot.icon}
                             </div>
-                        ))}
-                    </div>
+                            <div className="qw-ribbon-temp">{slot.temp}°</div>
+                            <div className="qw-ribbon-pop">
+                                {slot.prob > 20 ? (
+                                    <span className="qw-pop-high">💧{slot.prob}%</span>
+                                ) : (
+                                    <span className="qw-pop-low">--</span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
@@ -132,41 +132,47 @@ const QuickWeather = () => {
     );
 };
 
-function getTimelineSummary(cityData, cityName) {
-    if (!cityData?.hourly24) return `${cityName} Forecast`;
+// Generates natural language text forecast for next 8 hours
+function getNaturalTextForecast(cityData, cityName) {
+    if (!cityData?.hourly24) return `Forecast for ${cityName} is unavailable right now.`;
 
-    const slots = cityData.hourly24.slice(0, 8);
+    const slots = cityData.hourly24.slice(0, 8); // Next 8 hours
     const rainSlots = slots.filter(s => s.precip > 0.5 || s.prob > 40);
     const temps = slots.map(s => s.temp).filter(t => t != null);
     const maxTemp = temps.length ? Math.max(...temps) : null;
     const minTemp = temps.length ? Math.min(...temps) : null;
-
     const current = cityData.current;
 
     // 1. Rain Logic
     if (rainSlots.length >= 3) {
-        return `Rainy spells next 8h`;
+        return `Expect rainy spells throughout the next 8 hours.`;
     }
     if (rainSlots.length > 0) {
-        // Find when
         const firstRain = rainSlots[0];
-        return `Rain expected around ${firstRain.label}`;
+        // Convert label (e.g., "2 PM") to simpler terms if possible, or keep as is
+        return `Expecting showers around ${firstRain.label}.`;
     }
 
-    // 2. Temperature Trend
-    if (current && maxTemp && maxTemp > current.temp + 2) {
-        return `Warming up to ${maxTemp}°`;
-    }
-    if (current && minTemp && minTemp < current.temp - 2) {
-        return `Cooling down to ${minTemp}°`;
+    // 2. Clear/Cloudy Logic
+    const cloudySlots = slots.filter(s => s.condition && s.condition.toLowerCase().includes('cloud'));
+    if (cloudySlots.length >= 6) {
+        return `Mostly cloudy skies for the next 8 hours.`;
     }
 
-    // 3. Sky Condition
+    // 3. Temperature Trend
+    if (current && maxTemp && maxTemp > current.temp + 3) {
+        return `Clear skies, warming up to ${maxTemp}° later.`;
+    }
+    if (current && minTemp && minTemp < current.temp - 3) {
+        return `Clear skies, cooling down to ${minTemp}° by evening.`;
+    }
+
+    // Default
     if (current?.condition) {
-        return `${current.condition}. High ${cityData.forecast?.maxTemp || '--'}°`;
+        return `${current.condition} currently. Expect stable conditions.`;
     }
 
-    return `Clear skies ahead`;
+    return `Clear skies expected for the next 8 hours.`;
 }
 
 function getSevereWarning(cityData) {
@@ -179,13 +185,13 @@ function getSevereWarning(cityData) {
     const maxTemp = temps.length > 0 ? Math.max(...temps) : null;
 
     if (heavyRainSlots.length > 0) {
-        return `Heavy rain warning`;
+        return `Heavy rain warning in effect.`;
     }
     if (stormSlots.length >= 2) {
-        return 'Thunderstorms likely';
+        return 'Thunderstorms likely properly.';
     }
     if (maxTemp != null && maxTemp >= 42) {
-        return `Heat warning: ${maxTemp}°C`;
+        return `Heat warning: temperatures reaching ${maxTemp}°C.`;
     }
     return null;
 }

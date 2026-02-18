@@ -528,8 +528,8 @@ function processMultiModelData(modelData, locationName) {
         };
     };
 
-    // Populate hourly24 (every 3h)
-    for (let offset = 0; offset < 24; offset += 3) {
+    // Populate hourly24 (every 1h) - full 24 hour forecast
+    for (let offset = 0; offset < 24; offset++) {
         hourly24.push(getHourlyData(offset));
     }
 
