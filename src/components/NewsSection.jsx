@@ -108,7 +108,29 @@ function NewsSection({
                         >
                             <div className="mnc-header">
                                 <span className="mnc-source">{item.source}</span>
-                                <span className="mnc-time">{getTimeAgo(item.publishedAt) || item.time}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span className="mnc-time">{getTimeAgo(item.publishedAt) || item.time}</span>
+                                    {title === 'Top Stories' && item._scoreBreakdown && (
+                                        <span
+                                            className="info-icon"
+                                            title="View Ranking Score Breakdown"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const b = item._scoreBreakdown;
+                                                const details = `Ranking Score: ${item.impactScore.toFixed(2)}\n\n` +
+                                                `Freshness: ${b.freshness?.toFixed(2)}\n` +
+                                                `Source Tier: ${b.sourceScore?.toFixed(2)}\n` +
+                                                `Relevance Multiplier: ${b.impact?.toFixed(2) || 1.0}\n` +
+                                                `Live Boost: ${b.liveBoost || 1.0}\n` +
+                                                `Breaking Boost: ${b.breakingBoost || 1.0}`;
+                                                alert(details);
+                                            }}
+                                            style={{ cursor: 'help', fontSize: '1rem', opacity: 0.7 }}
+                                        >
+                                            ⓘ
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
                             <h3 className="mnc-headline">

@@ -189,16 +189,43 @@ function hash(value) {
 function cleanSource(sourceName) {
     if (!sourceName) return "Unknown";
 
+    let cleanName = sourceName;
+
+    // Clean up long SEO-optimized names (e.g. "India News | Latest India News Today...")
+    if (cleanName.includes('|')) {
+        cleanName = cleanName.split('|')[0].trim();
+    }
+    if (cleanName.includes('-')) {
+        // e.g. "Headline - Source"
+        cleanName = cleanName.split('-').pop().trim();
+    }
+
+    // Direct mapping overrides for nicer display names
+    const overrides = {
+        'bbc': 'BBC',
+        'ndtv': 'NDTV',
+        'the hindu': 'The Hindu',
+        'times of india': 'TOI',
+        'india news': 'India News'
+    };
+
+    const lowerName = cleanName.toLowerCase();
+    for (const [key, prettyName] of Object.entries(overrides)) {
+        if (lowerName.includes(key)) {
+            return prettyName;
+        }
+    }
+
     // Fix for Google News Search feeds where title is "Query - Google News"
-    if (sourceName.includes(" - Google News")) {
+    if (cleanName.includes("Google News")) {
         return "Google News";
     }
 
     // Search for known keys in the source name
     const foundKey = Object.keys(SOURCE_METRICS).find(key =>
-        key !== 'default' && sourceName.toLowerCase().includes(key.toLowerCase())
+        key !== 'default' && cleanName.toLowerCase().includes(key.toLowerCase())
     );
-    return foundKey ? SOURCE_METRICS[foundKey].name : sourceName;
+    return foundKey ? SOURCE_METRICS[foundKey].name : cleanName;
 }
 
 /**
@@ -274,7 +301,7 @@ export function computeImpactScore(item, section, viewCount = 0, overrideSetting
     }
 
     // 6. Live Updates Boost (New)
-    const isLive = /\b(live|updates|ongoing|developing)\b/i.test(item.title);
+    const isLive = /\b(live|updates|ongoing|developing)\b/i.test(item.title) || (item.url && item.url.includes('/live/'));
     const liveBoost = isLive ? 1.5 : 1.0;
 
     // Breaking News Detection (Phase 5)
@@ -717,7 +744,7 @@ async function rankAndFilter(items, section, limit, allowedSources, overrideSett
 
                 // 1. Freshness Filter (Strict)
                 // Relax freshness for "Live" blogs as they might have started days ago but are active
-                const isLive = /\b(live|updates)\b/i.test(item.title);
+                const isLive = /\b(live|updates)\b/i.test(item.title) || (item.url && item.url.includes('/live/'));
                 const effectiveMaxAge = isLive ? MAX_AGE_MS * 3 : MAX_AGE_MS; // Allow up to 3x longer (e.g. ~7 days)
 
                 if (!bypassFreshness && (now - item.publishedAt > effectiveMaxAge)) return false;
