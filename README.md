@@ -127,17 +127,16 @@ This application is a Progressive Web App (PWA), meaning you can install it on y
 
 ## Deployment Troubleshooting 🚨
 
-**The app is deployed automatically to the `gh-pages` branch.**
+**The app is deployed automatically to GitHub Pages using GitHub Actions from the `main` branch.**
 
 ### Required Configuration
 1.  Go to your GitHub Repository -> **Settings** -> **Pages**.
-2.  Set **Source** to **Deploy from a branch**.
-3.  Select **Branch: `gh-pages`** and **Folder: `/(root)`**.
-4.  Save.
+2.  Set **Source** to **GitHub Actions**.
+3.  The workflow `.github/workflows/deploy.yml` will automatically build and deploy the app whenever you push to the `main` branch.
 
-*Wait about 60 seconds after the next push for the site to update.*
+*Wait a couple of minutes after the next push for the site to build and update.*
 
-**Note:** If you previously deployed from `main`, you must switch to `gh-pages` for the site to load correctly.
+**Note:** The compiled assets are not stored in the repository. The GitHub Action handles the build process entirely.
 
 ## License
 
