@@ -1114,6 +1114,10 @@ body {
   line-height: 1.4;
   margin-bottom: 8px;
   color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .mnc-summary {

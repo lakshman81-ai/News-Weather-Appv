@@ -180,6 +180,16 @@ function NewsSection({
                 <div className="news-title-left">
                     <span className="news-icon">{icon}</span>
                     <span className="news-text">{title}</span>
+                    {title === 'Top Stories' && (
+                        <span
+                            className="info-icon"
+                            title="Ranked by relevance, breaking status, and sentiment analysis."
+                            onClick={(e) => { e.stopPropagation(); alert('Top Stories Ranking Logic:\n\n1. Breaking news prioritised.\n2. Consensus (multiple sources) boosted.\n3. Sentiment-based weight applied.\n4. Recent articles scored higher.'); }}
+                            style={{ cursor: 'help', fontSize: '0.8em', marginLeft: '5px', opacity: 0.7 }}
+                        >
+                            ⓘ
+                        </span>
+                    )}
                 </div>
 
                 <div className="news-title-right">
