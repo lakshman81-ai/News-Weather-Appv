@@ -17,7 +17,7 @@ export default defineConfig({
   // Use relative base path for maximum compatibility on GitHub Pages
   base: './',
   build: {
-    outDir: 'docs',
+    outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
       output: {
