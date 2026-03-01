@@ -180,17 +180,37 @@ async function fetchDDGNews(query) {
 
 function extractSourceFromTitle(title) {
     if (!title) return null;
+    let extracted = null;
     // Common pattern: "Headline Text - Source Name"
     const parts = title.split(' - ');
     if (parts.length > 1) {
-        return parts[parts.length - 1].trim();
+        extracted = parts[parts.length - 1].trim();
     }
     // Fallback: Check " | "
-    const partsPipe = title.split(' | ');
-    if (partsPipe.length > 1) {
-        return partsPipe[partsPipe.length - 1].trim();
+    else {
+        const partsPipe = title.split(' | ');
+        if (partsPipe.length > 1) {
+            extracted = partsPipe[partsPipe.length - 1].trim();
+        }
     }
-    return null;
+
+    if (!extracted) return null;
+
+    // Apply strict shortening mapping
+    const overrides = {
+        'bbc': 'BBC',
+        'ndtv': 'NDTV',
+        'the hindu': 'The Hindu',
+        'times of india': 'TOI',
+        'india news': 'India News'
+    };
+
+    const lowerExt = extracted.toLowerCase();
+    for (const [k, v] of Object.entries(overrides)) {
+        if (lowerExt.includes(k)) return v;
+    }
+
+    return extracted;
 }
 
 function mapSourceToKey(sourceName) {
