@@ -291,9 +291,19 @@ function TechSocialPage() {
                         </button>
                     </div>
 
-                    <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                    <div className="masonry-grid">
                         {filterOldNews(processedEntertainment.filter(item => item.region === activeEntTab)).slice(0, 8).map((item, idx) => (
-                            <EntertainmentPoster key={idx} item={item} />
+                            <ImageCard
+                                key={idx}
+                                article={{
+                                    ...item,
+                                    time: item.time || 'Recently',
+                                    summary: '' // Hide summary to match typical trend cards if desired, or keep it if available
+                                }}
+                                href={item.link}
+                                badge={item.source}
+                                size="medium"
+                            />
                         ))}
                     </div>
                      {filterOldNews(processedEntertainment.filter(item => item.region === activeEntTab)).length === 0 && (
